@@ -2,8 +2,8 @@
     <div class="container">
         <img src="@/assets/logo.png" alt="오늘의 땡처리 로고" class = "logo">
         <div class="button-group">
-            <button class="btn">로그인 하기 </button>
-            <button class="btn">회원가입 하기</button>
+            <button class="btn"><a href="#">로그인 하기</a></button>
+            <button class="btn"><a href="./join1.vue">회원가입 하기</a></button>
         </div>
     </div>
 </template>
@@ -17,6 +17,8 @@
     font-weight: normal;
     font-style: normal;
 }
+
+
 *{
     font-family: 'ChosunGu';
 }
@@ -49,4 +51,11 @@
     font-weight: bold;
     cursor: pointer;
 }
+
+a {
+  color: inherit;
+  text-decoration: none;
+  font-size: 10px;
+}
+
 </style>
