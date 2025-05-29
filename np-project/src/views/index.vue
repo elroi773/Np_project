@@ -3,7 +3,7 @@
         <img src="@/assets/logo.png" alt="오늘의 땡처리 로고" class = "logo">
         <div class="button-group">
             <button class="btn"><a href="#">로그인 하기</a></button>
-            <button class="btn"><a href="./join1.vue">회원가입 하기</a></button>
+            <button class="btn"><router-link to="/join1">회원가입 하기</router-link></button>
         </div>
     </div>
 </template>
@@ -12,15 +12,14 @@
 <style scoped>
 
 @font-face {
-    font-family: 'ChosunGu';
-    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/ChosunGu.woff') format('woff');
-    font-weight: normal;
+    font-family: 'Pretendard-Regular';
+    src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
+    font-weight: 400;
     font-style: normal;
 }
 
-
 *{
-    font-family: 'ChosunGu';
+    font-family: 'Pretendard-Regular';
 }
 .container{
     display: flex;
