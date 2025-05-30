@@ -1,12 +1,23 @@
 <template>
     <div class="container">
-        <img src="@/assets/logo.png" alt="오늘의 땡처리 로고" class = "logo">
-        <div class="button-group">
-            <button class="btn"><a href="#">로그인 하기</a></button>
-            <button class="btn"><router-link to="/join1">회원가입 하기</router-link></button>
-        </div>
+      <img src="@/assets/logo.png" alt="오늘의 땡처리 로고" class="logo">
+      <div class="button-group">
+        <button class="btn"><a href="#">로그인 하기</a></button>
+        <button class="btn" @click="goToJoin">회원가입 하기</button>
+      </div>
     </div>
-</template>
+  </template>
+  
+  <script>
+  export default {
+    methods: {
+      goToJoin() {
+        this.$router.push('/join1');
+      }
+    }
+  }
+  </script>
+  
 
 
 <style scoped>
