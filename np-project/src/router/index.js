@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Index from '@/views/Index.vue'
 import Join1 from '@/views/join1.vue'
 import Join2 from '@/views/join2.vue'
+import Join3 from '@/views/join3.vue'
 
 
 
@@ -21,6 +22,11 @@ const routes = [
     path: '/join2',
     name: 'Join2',
     component: Join2
+  },
+  {
+    path: '/join3',
+    name: 'Join3',
+    component: Join3
   }
 ]
 

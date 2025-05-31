@@ -34,8 +34,10 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const selected = ref(null)
+const router = useRouter()
 
 function select(type) {
   selected.value = type
@@ -45,13 +47,12 @@ function next() {
   if (!selected.value) {
     alert('옵션을 선택해주세요!')
   } else {
-    alert(`선택한 옵션: ${selected.value === 'buy' ? '구매' : '판매'}`)
+    // 선택한 옵션에 따라 다음 페이지로 이동
+    router.push('/join2')
   }
 }
-
-
-
 </script>
+
 
 <style scoped>
 .container {
@@ -127,6 +128,7 @@ function next() {
   font-weight: bold;
   cursor: pointer;
   transition: background-color 0.3s;
+  
 }
 
 .next-button:hover {
