@@ -5,6 +5,7 @@ import Join1 from '@/views/join1.vue'
 import Join2 from '@/views/join2.vue'
 import Join3 from '@/views/join3.vue'
 import Join4 from '@/views/join4.vue'
+import Join5 from '@/views/join5.vue'
 
 
 
@@ -34,6 +35,11 @@ const routes = [
     name: 'Join4',
     component: Join4
   },
+  {
+    path: '/join5',
+    name: 'Join5',
+    component: Join5
+  }
 ]
 
 const router = createRouter({
