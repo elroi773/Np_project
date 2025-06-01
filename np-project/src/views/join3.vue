@@ -88,6 +88,16 @@ function goNext() {
     })
   }
 }
+
+function next() {
+  if (!selected.value) {
+    alert('옵션을 선택해주세요!')
+  } else {
+    // 선택한 옵션에 따라 다음 페이지로 이동
+    router.push('/join4')
+  }
+}
+
 </script>
 
   
