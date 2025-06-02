@@ -30,37 +30,28 @@
   </template>
   
   <script>
-  export default {
-    data() {
-      return {
-        count: 1
-      };
-    },
-    methods: {
-      increase() {
-        if (this.count < 7) this.count++;
-      },
-      decrease() {
-        if (this.count > 1) this.count--;
-      },
-      goNext() {
-        alert(`선택한 횟수: ${this.count}회`);
-        // 다음 단계로 이동하는 로직 (예: this.$router.push('/join6'))
-      }
-    }
-  };
-
-  import axios from 'axios';
+import axios from 'axios';
 
 export default {
   data() {
     return {
+      count: 1,
       username: '',
       password: '',
       purchaseLimit: 1
     };
   },
   methods: {
+    increase() {
+      if (this.count < 7) this.count++;
+    },
+    decrease() {
+      if (this.count > 1) this.count--;
+    },
+    goNext() {
+      alert(`선택한 횟수: ${this.count}회`);
+      // 예: this.$router.push('/join6')
+    },
     async submitSignup() {
       try {
         await axios.post('http://localhost:3000/api/consumer/signup', {
@@ -77,8 +68,8 @@ export default {
     }
   }
 };
+</script>
 
-  </script>
   
   <style scoped>
   .container {
