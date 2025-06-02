@@ -6,6 +6,7 @@ import Join2 from '@/views/join2.vue'
 import Join3 from '@/views/join3.vue'
 import Join4 from '@/views/join4.vue'
 import Join5 from '@/views/join5.vue'
+import Login from '@/views/login.vue'
 
 
 
@@ -39,6 +40,11 @@ const routes = [
     path: '/join5',
     name: 'Join5',
     component: Join5
+  },
+  {
+    path:'/login',
+    name:'Login',
+    component: Login
   }
 ]
 
