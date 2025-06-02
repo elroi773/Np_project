@@ -1,35 +1,26 @@
-// backend/server.js
+// server.js
 const express = require('express');
-const cors = require('cors');
-const mysql = require('mysql2/promise');
-const bcrypt = require('bcrypt');
-
+const mysql = require('mysql2');
 const app = express();
-app.use(cors());
-app.use(express.json());
+const port = 3000;
 
-const db = await mysql.createConnection({
+// MySQL 연결 설정
+const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: 'Mysql4344!',
   database: 'np'
 });
 
-app.post('/api/consumer/signup', async (req, res) => {
-  const { username, password, purchaseLimit } = req.body;
-  const hashed = await bcrypt.hash(password, 10);
-
-  try {
-    await db.execute(
-      'INSERT INTO consumers (username, password, purchase_limit) VALUES (?, ?, ?)',
-      [username, hashed, purchaseLimit]
-    );
-    res.json({ success: true });
-  } catch (e) {
-    res.json({ success: false, message: e.message });
+// DB 연결 시도
+db.connect((err) => {
+  if (err) {
+    console.error('❌ DB 연결 실패:', err.message);
+  } else {
+    console.log('✅ DB 연결 성공!');
   }
 });
 
-app.listen(3000, () => {
-  console.log('서버 실행 중: http://localhost:3000');
+app.listen(port, () => {
+  console.log(`서버가 http://localhost:${port} 에서 실행 중`);
 });
