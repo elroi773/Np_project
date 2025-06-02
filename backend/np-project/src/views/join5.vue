@@ -49,6 +49,35 @@
       }
     }
   };
+
+  import axios from 'axios';
+
+export default {
+  data() {
+    return {
+      username: '',
+      password: '',
+      purchaseLimit: 1
+    };
+  },
+  methods: {
+    async submitSignup() {
+      try {
+        await axios.post('http://localhost:3000/api/consumer/signup', {
+          username: this.username,
+          password: this.password,
+          purchaseLimit: this.purchaseLimit
+        });
+        alert('회원가입 성공!');
+        this.$router.push('/login');
+      } catch (error) {
+        console.error('회원가입 실패:', error);
+        alert('에러가 발생했어요.');
+      }
+    }
+  }
+};
+
   </script>
   
   <style scoped>
