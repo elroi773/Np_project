@@ -7,6 +7,7 @@ import Join3 from '@/views/join3.vue'
 import Join4 from '@/views/join4.vue'
 import Join5 from '@/views/join5.vue'
 import Login from '@/views/login.vue'
+import Main from '@/views/main.vue'
 
 
 
@@ -45,6 +46,11 @@ const routes = [
     path:'/login',
     name:'Login',
     component: Login
+  },
+  {
+    path: '/main',
+    name: 'Main',
+    component: Main
   }
 ]
 
