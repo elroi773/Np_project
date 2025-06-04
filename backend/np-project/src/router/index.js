@@ -1,6 +1,7 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import Index from '@/views/Index.vue'
+import Index from '../views/index.vue' 
+
 import Join1 from '@/views/join1.vue'
 import Join2 from '@/views/join2.vue'
 import Join3 from '@/views/join3.vue'
@@ -12,11 +13,7 @@ import Main from '@/views/main.vue'
 
 
 const routes = [
-  {
-    path: '/',
-    name: 'Home',
-    component: Index
-  },
+  { path: '/', name: 'Index', component: Index },
   { 
     path: '/join1', 
     name: 'Join1', 
