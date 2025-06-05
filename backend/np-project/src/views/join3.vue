@@ -27,7 +27,10 @@
 
       <div v-show="!showLocationMessage" class="mini-map" ref="miniMap"></div>
     </section>
+    <button class="next-button" @click="goNext">다음</button>
+
   </div>
+
 </template>
 
 <script>
@@ -103,6 +106,9 @@ export default {
       });
       marker.setMap(map);
     },
+    goNext() {
+      this.$router.push({ name: 'Join4' });
+    }
   },
 };
 </script>
@@ -198,5 +204,16 @@ export default {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.next-button {
+  background-color: #FFDADA;
+  border: none;
+  border-radius: 30px;
+  width: 100%;
+  padding: 16px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
 }
 </style>
