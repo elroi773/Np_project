@@ -159,6 +159,7 @@ input {
     margin-top: 20px;
     background-color: #ffe0e0;
     color: #333;
+    width: 100%;
     padding: 14px 40px;
     font-size: 18px;
     border: none;
