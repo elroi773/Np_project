@@ -160,6 +160,7 @@ export default {
   .next-button {
     background-color: #ffdcdc;
     color: #333;
+    width: 100%;
     padding: 14px 40px;
     font-size: 18px;
     border: none;
