@@ -123,6 +123,7 @@ function next() {
 .next-button {
   background-color: #fdd8d8;
   border: none;
+  width: 100%;
   padding: 12px 40px;
   border-radius: 999px;
   font-weight: bold;
