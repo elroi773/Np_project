@@ -3,7 +3,8 @@
     <img src="@/assets/logo.png" alt="오늘의 땡처리 로고" class="logo">
     <div class="button-group">
       <button class="btn" @click="goToLogin"><a href="#">로그인 하기</a></button>
-      <button class="btn" @click="goToJoin">회원가입 하기</button>
+      <button class="btn" @click="goToJoin"><a href="#">회원가입하기</a></button>
+
     </div>
   </div>
 </template>
