@@ -135,6 +135,7 @@
   .next-button {
     background-color: #FFDADA;
     border: none;
+    width: 100%;
     border-radius: 30px;
     width: 100%;
     padding: 16px;
