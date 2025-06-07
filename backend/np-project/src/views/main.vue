@@ -87,7 +87,7 @@ export default {
       }
     },
     toggleNotifications() {
-      alert("알림 기능은 준비 중입니다!");
+      router.push('./notifications.vue')
     },
     toggleDarkMode() {
       alert("다크 모드는 준비 중입니다!");
