@@ -94,11 +94,10 @@ export default {
     },
     fetchNearbyDeals() {
       alert("주변 땡처리 정보를 가져옵니다!");
-      // 여기에 주변 땡처리 로직을 추가하면 됩니다!
+      
     },
     searchDeals() {
       alert(`검색어: ${this.searchQuery}`);
-      // 여기에 검색어를 기반으로 결과를 필터링하는 로직을 추가하면 됩니다!
     },
   },
 };
