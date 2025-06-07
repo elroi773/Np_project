@@ -13,7 +13,8 @@
       </div>
     </header>
 
-    <div class="search-bar">
+    <!-- 검색창 -->
+    <div class="search-container">
       <input type="text" v-model="searchQuery" placeholder="검색어를 입력하세요" />
       <button @click="searchDeals" class="search-button">
         <span class="material-icons">search</span>
@@ -25,7 +26,7 @@
 
     <!-- 하단 버튼 -->
     <footer class="footer">
-      <button @click="fetchNearbyDeals" class="fetch-button">
+      <button @click="fetchNearbyDeals" class="find-button">
         주변 땡처리 찾기
       </button>
     </footer>
@@ -38,6 +39,8 @@ export default {
   data() {
     return {
       searchQuery: "",
+      map: null,            // 카카오맵 객체
+      marker: null,         // 마커 객체
     };
   },
   mounted() {
@@ -45,7 +48,8 @@ export default {
       this.initMap();
     } else {
       const script = document.createElement("script");
-      script.src = "https://dapi.kakao.com/v2/maps/sdk.js?appkey=fcef28e18ff805c8b61b547c7ac1f4b8&libraries=services";
+      script.src =
+        "https://dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_APPKEY&libraries=services";
       script.onload = () => kakao.maps.load(this.initMap);
       document.head.appendChild(script);
     }
@@ -54,10 +58,33 @@ export default {
     initMap() {
       const container = this.$refs.mapContainer;
       const options = {
-        center: new kakao.maps.LatLng(37.5665, 126.978),
+        center: new kakao.maps.LatLng(37.5665, 126.978), // 기본 중심 좌표
         level: 3,
       };
       this.map = new kakao.maps.Map(container, options);
+
+      // 기본 마커
+      this.marker = new kakao.maps.Marker({
+        position: this.map.getCenter(),
+      });
+      this.marker.setMap(this.map);
+
+      // 현재 위치 가져오기
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const locPosition = new kakao.maps.LatLng(lat, lng);
+
+            this.map.setCenter(locPosition);
+            this.marker.setPosition(locPosition);
+          },
+          () => {
+            alert("위치 정보가 필요합니다!");
+          }
+        );
+      }
     },
     toggleNotifications() {
       alert("알림 기능은 준비 중입니다!");
@@ -67,112 +94,123 @@ export default {
     },
     fetchNearbyDeals() {
       alert("주변 땡처리 정보를 가져옵니다!");
+      // 여기에 주변 땡처리 로직을 추가하면 됩니다!
     },
     searchDeals() {
       alert(`검색어: ${this.searchQuery}`);
+      // 여기에 검색어를 기반으로 결과를 필터링하는 로직을 추가하면 됩니다!
     },
   },
 };
 </script>
 
-<style scoped>
+<style>
+/* 초기화 및 폰트 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Pretendard', sans-serif;
+}
+
+body {
+  background-color: #f4f4f4;
+  color: #333;
+}
+
 .main-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  background: #f8f7f3;
-  font-family: sans-serif;
+  min-height: 100vh;
 }
 
-/* 상단바 */
+/* 상단 헤더 */
 .header {
+  background-color: #ffffff;
+  padding: 1rem 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #ffffff;
-  padding: 12px 16px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
-.app-title {
-  font-size: 18px;
-  font-weight: 600;
-  margin: 0;
+.header h1 {
+  font-size: 1.2rem;
+  font-weight: 700;
 }
 
-.header-right {
-  display: flex;
-  gap: 8px;
-}
-
-.icon-button {
+.header-right button {
   background: none;
   border: none;
+  color: #666;
+  font-size: 0.9rem;
+  margin-left: 0.5rem;
   cursor: pointer;
-  font-size: 24px;
-  color: #555;
-  transition: color 0.2s;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
 }
 
-.icon-button:hover {
-  color: #000;
+.header-right button:hover {
+  background-color: #efefef;
 }
 
 /* 검색창 */
-.search-bar {
+.search-container {
   display: flex;
-  padding: 8px 16px;
-  background: #ffffff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  margin: 1rem 1.5rem;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  overflow: hidden;
 }
 
-.search-bar input {
+.search-container input {
   flex: 1;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px 0 0 4px;
-  outline: none;
-  font-size: 14px;
-}
-
-.search-button {
-  background: #4cae4f;
+  padding: 0.7rem;
   border: none;
-  border-radius: 0 4px 4px 0;
-  padding: 0 12px;
+  outline: none;
+}
+
+.search-container button {
+  background-color: #4caf50;
   color: #ffffff;
+  border: none;
+  padding: 0 1rem;
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
-.search-button .material-icons {
-  font-size: 24px;
+.search-container button:hover {
+  background-color: #43a047;
 }
 
-/* 지도 영역 */
+/* 카카오맵 */
 .map-container {
+  margin: 1rem 1.5rem;
   flex: 1;
+  height: 400px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
 
 /* 하단 버튼 */
-.footer {
-  padding: 12px 16px;
-  background: #ffffff;
-  box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.1);
-}
-
-.fetch-button {
-  width: 100%;
-  background: #4cae4f;
+.find-button {
+  display: block;
+  width: calc(100% - 3rem);
+  margin: 1rem 1.5rem;
+  padding: 0.75rem;
+  background-color: #4caf50;
   color: #ffffff;
+  text-align: center;
   border: none;
-  border-radius: 6px;
-  padding: 14px 0;
-  font-size: 16px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background-color 0.3s ease;
 }
 
-.fetch-button:hover {
-  background: #3c9440;
+.find-button:hover {
+  background-color: #43a047;
 }
 </style>
