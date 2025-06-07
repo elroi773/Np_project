@@ -9,6 +9,7 @@ import Join4 from '@/views/join4.vue'
 import Join5 from '@/views/join5.vue'
 import Login from '@/views/login.vue'
 import Main from '@/views/main.vue'
+import Notifications from '@/views/notifications.vue'
 
 
 
@@ -48,7 +49,13 @@ const routes = [
     path: '/main',
     name: 'Main',
     component: Main
+  },
+  {
+    path: "/notifications",
+    name: "Notifications",
+    component: Notifications, 
   }
+  
 ]
 
 const router = createRouter({
