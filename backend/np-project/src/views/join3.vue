@@ -3,18 +3,23 @@
     <div class="step">03</div>
 
     <div class="dots">
-      <span class="dot"></span>
-      <span class="dot"></span>
+      <span class="dot active"></span>
+      <span class="dot active"></span>
       <span class="dot active"></span>
       <span class="dot"></span>
       <span class="dot"></span>
     </div>
+
+    <h2 class="title">위치 권환 요청</h2>
+
     <section class="map-section">
       <h2>내 주변 위치 확인</h2>
+      <br />
       <transition name="fade">
         <div v-if="showLocationMessage" class="location-message">
           <p>
             <strong>📍 위치 권한을 허용해주세요!</strong><br />
+            <br />
             이 서비스는 내 주변의<br />
             당일 생산/폐기 상품을<br />
             제공하는 매장을 추천해 드립니다.
@@ -146,6 +151,12 @@ export default {
   background-color: #ffa74d;
 }
 
+.title {
+  text-align: center;
+  font-size: 18px;
+  margin-bottom: 24px;
+}
+
 
 /* 지도 섹션 전체 스타일 */
 .map-section {
@@ -163,7 +174,7 @@ export default {
   border-radius: 10px;
   text-align: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  font-size: 1rem;
+  font-size: 0.8rem;
   color: #333;
 }
 
@@ -171,9 +182,9 @@ export default {
 .permission-btn {
   margin-top: 0.8rem;
   padding: 0.6rem 1.2rem;
-  background-color: #7b68ee;
+  background-color: #ffe2bd;
   /* 연보라색 버튼 */
-  color: white;
+  color: rgb(67, 56, 45);
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -182,7 +193,7 @@ export default {
 }
 
 .permission-btn:hover {
-  background-color: #6a5acd;
+  background-color: #ffe2bd;
 }
 
 /* 지도 컨테이너 */
@@ -207,13 +218,16 @@ export default {
 }
 
 .next-button {
-  background-color: #FFDADA;
+  background-color: #ffa339;
   border: none;
+  width: 100%;
   border-radius: 30px;
   width: 100%;
   padding: 16px;
   font-weight: bold;
   font-size: 16px;
   cursor: pointer;
+  margin-top: 90px;
+
 }
 </style>
