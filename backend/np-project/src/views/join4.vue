@@ -1,6 +1,16 @@
 <template>
-    <div class="signup-container">
-        <h2 class="step-title">회원가입</h2>
+    <div class="container">
+        <div class="step">04</div>
+
+        <div class="dots">
+            <span class="dot active"></span>
+            <span class="dot active"></span>
+            <span class="dot active"></span>
+            <span class="dot active"></span>
+            <span class="dot"></span>
+        </div>
+
+        <h2 class="title">회원 가입</h2>
 
         <!-- 아이디 입력 -->
         <div class="form-group">
@@ -25,7 +35,7 @@
             <label for="confirmPassword">비밀번호 확인</label>
             <input id="confirmPassword" type="password" v-model="confirmPassword" placeholder="비밀번호를 다시 입력하세요" />
         </div>
-
+        
         <!-- 다음 버튼 -->
         <button class="next-button" @click="goNext">다음</button>
     </div>
@@ -44,9 +54,8 @@ export default {
         };
     },
     methods: {
-        // 중복확인 시뮬레이션 (서버 요청 대신 가짜 아이디 목록 사용)
         checkDuplicate() {
-            const existingUsernames = ['admin', 'user1', 'test']; // 기존 아이디 목록
+            const existingUsernames = ['admin', 'user1', 'test'];
             this.checked = true;
 
             if (!this.username.trim()) {
@@ -63,8 +72,7 @@ export default {
                 this.isAvailable = true;
             }
         },
-
-        submitForm() {
+        goNext() {
             if (!this.username || !this.password || !this.confirmPassword) {
                 alert('모든 항목을 입력해주세요.');
                 return;
@@ -81,89 +89,128 @@ export default {
             }
 
             alert('회원가입 완료!');
-            // 실제 API 호출은 여기서 진행
+            // 실제 API 호출은 이곳에 추가
         }
     }
 };
-function next() {
-    if (!selected.value) {
-        alert('옵션을 선택해주세요!')
-    } else {
-        // 선택한 옵션에 따라 다음 페이지로 이동
-        router.push('/join4')
-    }
-}
 </script>
 
 <style scoped>
-.signup-container {
+body {
     background-color: #f9f8f2;
-    padding: 40px 20px;
-    text-align: center;
-    font-family: sans-serif;
+    font-family: 'Helvetica Neue', sans-serif;
 }
 
-.step-title {
-    font-size: 22px;
-    font-weight: bold;
-    margin-bottom: 30px;
+.container {
+  background-color: #fdfaf6;
+  min-height: 100vh;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Pretendard', sans-serif;
 }
+
+.step {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.dots {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 40px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background-color: #f9dede;
+  border-radius: 50%;
+}
+
+.dot.active {
+  background-color: #ffa74d;
+}
+
+.title {
+  text-align: center;
+  font-size: 18px;
+  margin-bottom: 24px;
+}
+
 
 .form-group {
-    margin-bottom: 25px;
+    margin-bottom: 20px;
+    text-align: left;
 }
 
 label {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 6px;
     display: block;
-    font-size: 18px;
-    margin-bottom: 10px;
+    color: #333;
 }
 
 .input-row {
     display: flex;
-    justify-content: center;
     gap: 10px;
+    align-items: center;
 }
 
 input {
-    padding: 10px;
-    width: 180px;
-    border: 1px solid #555;
-    border-radius: 6px;
-    font-size: 16px;
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #bbb;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: border-color 0.3s;
+}
+
+input:focus {
+    border-color: #ffa94d;
+    outline: none;
 }
 
 .check-button {
-    background-color: #fedcb8;
+    padding: 10px 14px;
+    background-color: #ffe0ba;
+    font-size: 13px;
     border: none;
-    padding: 10px 16px;
-    font-size: 14px;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.check-button:hover {
+    background-color: #ffc98c;
 }
 
 .check-message {
-    margin-top: 8px;
-    font-size: 14px;
+    margin-top: 6px;
+    font-size: 13px;
+    min-height: 18px;
 }
 
 .available {
-    color: green;
+    color: #2ecc71;
 }
 
 .unavailable {
-    color: red;
+    color: #e74c3c;
 }
 
 .next-button {
-    margin-top: 20px;
-    background-color: #ffe0e0;
-    color: #333;
-    width: 100%;
-    padding: 14px 40px;
-    font-size: 18px;
-    border: none;
-    border-radius: 30px;
-    cursor: pointer;
+  background-color: #ffa339;
+  border: none;
+  width: 100%;
+  border-radius: 30px;
+  width: 100%;
+  padding: 16px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 90px;
 }
 </style>
