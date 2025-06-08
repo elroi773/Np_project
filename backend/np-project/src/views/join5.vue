@@ -1,18 +1,23 @@
 <template>
   <div class="container">
-    <h2 class="step-number">05</h2>
+    <div class="step">05</div>
 
-    <!-- 페이지 indicator -->
     <div class="dots">
-      <span v-for="n in 5" :key="n" class="dot" :class="{ active: n <= 5 }" />
+      <span class="dot active"></span>
+      <span class="dot active"></span>
+      <span class="dot active"></span>
+      <span class="dot active"></span>
+      <span class="dot active"></span>
     </div>
 
-    <div class="title">모두가 함께 나누는 혜택, 정직한 소비로 지켜주세요!</div>
+    <h2 class="title">모두가 함께 나누는 혜택, 정직한 소비로 지켜주세요!</h2>
+
     <p class="description">
       이 서비스는 <span class="highlight">선한 소비문화 확산</span>을 위해 만들어졌습니다.<br />
-      악용을 방지하고 더 많은 이웃과 나누기 위해 일주일 구매 횟수를 제한합니다.<br />
-      양해와 협조 부탁드려요!
+      악용을 방지하고 더 많은 이웃과 나누기 위해<br> <span class="limit">일주일 구매 횟수를 제한</span>합니다.<br />
+      양해와 협조 부탁드립니다!
     </p>
+
 
     <!-- 구매 횟수 설정 -->
     <div class="purchase-section">
@@ -73,56 +78,75 @@ export default {
 
 <style scoped>
 .container {
-  background-color: #fefdf8;
+  background-color: #fdfaf6;
+  min-height: 100vh;
   padding: 40px 20px;
-  text-align: center;
-  font-family: sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Pretendard', sans-serif;
 }
 
-.step-number {
-  font-size: 18px;
-  margin-bottom: 20px;
+.step {
+  font-weight: bold;
+  margin-bottom: 10px;
 }
 
 .dots {
   display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 25px;
-}
-
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: #ffe4c2;
-  opacity: 0.6;
-}
-
-.dot.active {
-  background-color: #ff9900;
-  opacity: 1;
-}
-
-.title {
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 12px;
-}
-
-.description {
-  font-size: 14px;
-  color: #555;
-  line-height: 1.5;
+  gap: 6px;
   margin-bottom: 40px;
 }
 
-.highlight {
-  font-weight: bold;
-  color: #333;
+.dot {
+  width: 8px;
+  height: 8px;
+  background-color: #f9dede;
+  border-radius: 50%;
 }
 
+.dot.active {
+  background-color: #ffa74d;
+}
+
+.title {
+  text-align: center;
+  font-size: 16px;
+  margin-bottom: 24px;
+}
+
+.description {
+  font-size: 13px;
+  color: #333;
+  line-height: 1.8;
+  margin: 24px auto;
+  background-color: #fefefe;
+  padding: 20px 24px;
+  border-radius: 12px;
+  border: 1px solid #e5e5e5;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+  text-align: center;
+  max-width: 480px;
+}
+
+.description span {
+  font-weight: 600;
+}
+
+.highlight {
+  background: linear-gradient(transparent 70%, #fff4a3 70%);
+  color: #222;
+}
+
+.limit {
+  color: #d64545;
+}
+
+
+
 .purchase-section {
+  margin-top: 30px;
   margin-bottom: 40px;
 }
 
@@ -158,13 +182,15 @@ export default {
 }
 
 .next-button {
-  background-color: #ffdcdc;
-  color: #333;
-  width: 100%;
-  padding: 14px 40px;
-  font-size: 18px;
+  background-color: #ffa339;
   border: none;
+  width: 100%;
   border-radius: 30px;
+  width: 100%;
+  padding: 16px;
+  font-weight: bold;
+  font-size: 16px;
   cursor: pointer;
+  margin-top: 60px;
 }
 </style>
