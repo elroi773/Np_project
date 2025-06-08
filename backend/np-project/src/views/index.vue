@@ -60,7 +60,7 @@ export default {
 }
 
 .btn{
-  background-color: #ffb866;
+  background-color: #ffa339;
   border: none;
   border-radius: 20px;
   padding: 12px;
