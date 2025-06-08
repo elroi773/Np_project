@@ -121,7 +121,7 @@ function next() {
 }
 
 .next-button {
-  background-color: #fdd8d8;
+  background-color: #ffa339;
   border: none;
   width: 100%;
   padding: 12px 40px;
