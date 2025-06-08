@@ -10,7 +10,7 @@
       <span class="dot"></span>
     </div>
 
-    <div class="question">무슨 용도로 사용 하시나요?</div>
+    <h2 class="title">무슨 용도로 사용 하시나요?</h2>
 
     <div class="buttons">
       <button
@@ -28,7 +28,8 @@
       </button>
     </div>
 
-    <button class="next-button" @click="next">다음</button>
+    <button class="next-button" @click="goNext">다음</button>
+
   </div>
 </template>
 
@@ -87,10 +88,10 @@ function next() {
   background-color: #ffa74d;
 }
 
-.question {
-  color: #555;
-  margin-bottom: 30px;
-  font-size: 14px;
+.title {
+  text-align: center;
+  font-size: 18px;
+  margin-bottom: 24px;
 }
 
 .buttons {
@@ -113,7 +114,7 @@ function next() {
 }
 
 .option-button:hover {
-  background-color: #ffd4a3;
+  background-color: #ffe2bd;
 }
 
 .option-button.selected {
@@ -129,10 +130,7 @@ function next() {
   font-weight: bold;
   cursor: pointer;
   transition: background-color 0.3s;
-  
+  margin-top: 210px;
 }
 
-.next-button:hover {
-  background-color: #fcbaba;
-}
 </style>
