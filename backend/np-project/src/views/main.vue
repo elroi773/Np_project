@@ -27,7 +27,7 @@
     <!-- 하단 버튼 -->
     <footer class="footer">
       <button @click="fetchNearbyDeals" class="find-button">
-        주변 땡처리 찾기
+        주변 땡처리 땡잡기
       </button>
     </footer>
   </div>
@@ -44,16 +44,25 @@ export default {
     };
   },
   mounted() {
-    if (window.kakao && window.kakao.maps) {
+  if (window.kakao && window.kakao.maps) {
+    this.$nextTick(() => {
       this.initMap();
-    } else {
-      const script = document.createElement("script");
-      script.src =
-        "https://dapi.kakao.com/v2/maps/sdk.js?appkey=5b7a047034c2cd477e680ad35bbb6862&libraries=services";
-      script.onload = () => kakao.maps.load(this.initMap);
-      document.head.appendChild(script);
-    }
-  },
+    });
+  } else {
+    const script = document.createElement("script");
+    script.src = "https://dapi.kakao.com/v2/maps/sdk.js?appkey=5b7a047034c2cd477e680ad35bbb6862&autoload=false&libraries=services";
+    script.onload = () => {
+      kakao.maps.load(() => {
+        this.$nextTick(() => {
+          this.initMap();
+        });
+      });
+    };
+    document.head.appendChild(script);
+  }
+}
+
+,
   methods: {
     initMap() {
       const container = this.$refs.mapContainer;
@@ -120,7 +129,9 @@ body {
 .main-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  /* min-height: 100vh; */
+  width: 100%;
+  height: 400px;
 }
 
 /* 상단 헤더 */
@@ -172,7 +183,7 @@ body {
 }
 
 .search-container button {
-  background-color: #4caf50;
+  background-color: #ffa339;
   color: #ffffff;
   border: none;
   padding: 0 1rem;
@@ -181,7 +192,7 @@ body {
 }
 
 .search-container button:hover {
-  background-color: #43a047;
+  background-color: #ff951c;
 }
 
 /* 카카오맵 */
@@ -200,7 +211,7 @@ body {
   width: calc(100% - 3rem);
   margin: 1rem 1.5rem;
   padding: 0.75rem;
-  background-color: #4caf50;
+  background-color: #ffa339;
   color: #ffffff;
   text-align: center;
   border: none;
@@ -210,6 +221,6 @@ body {
 }
 
 .find-button:hover {
-  background-color: #43a047;
+  background-color: #ff951c;
 }
 </style>
