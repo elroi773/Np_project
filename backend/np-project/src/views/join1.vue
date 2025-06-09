@@ -48,11 +48,17 @@ function next() {
   if (!selected.value) {
     alert('옵션을 선택해주세요!')
   } else {
-    // 선택한 옵션에 따라 다음 페이지로 이동
-    router.push('/join2')
+    // 선택한 옵션에 따라 다른 페이지로 이동
+    if (selected.value === 'buy') {
+      router.push('/join-buy')  // 예: 구매자 페이지
+    } else if (selected.value === 'sell') {
+      router.push('/join-sell') // 예: 판매자 페이지
+    }
   }
 }
+
 </script>
+
 
 
 <style scoped>
