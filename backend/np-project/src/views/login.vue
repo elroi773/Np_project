@@ -47,7 +47,7 @@ export default {
 
         if (response.data.success) {
           alert('로그인 성공!');
-          this.$router.push('/home');
+          this.$router.push('/main');
         } else {
           alert(response.data.message || '로그인 실패');
         }
