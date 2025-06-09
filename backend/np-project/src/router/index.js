@@ -10,6 +10,7 @@ import Login from '@/views/login.vue'
 import Main from '@/views/main.vue'
 import Join2_Sell from '@/views/join2_sell.vue'
 import Join4_Sell from '@/views/join4_sell.vue'
+import Join_Complete from '@/views/join_complete.vue'
 import Notifications from '@/views/notifications.vue'
 
 
@@ -65,8 +66,12 @@ const routes = [
     path:'/join4_sell',
     name: 'Join4Sell',
     component: Join4_Sell
+  },
+  {
+    path:'/join_complete',
+    name: 'JoinComplete',
+    component: Join_Complete
   }
-  
 ]
 
 const router = createRouter({
