@@ -87,7 +87,7 @@
 </template>
 
 <script>
-import axios from 'axios';//js 의 웹 요청 라이브러리
+import axios from 'axios';
 
 export default {
     data() {
@@ -113,7 +113,7 @@ export default {
             }
 
             try {
-                const response = await axios.get('http://localhost:3000/api/store/check-biznumber', {
+                const response = await axios.get('/api/store/check-biznumber', {
                     params: { bizNumber: this.bizNumber.trim() }
                 });
 
@@ -144,7 +144,7 @@ export default {
             }
 
             try {
-                const response = await axios.post('http://localhost:3000/api/store', {
+                const response = await axios.post('/api/store', {
                     user_id: this.userId,
                     store_name: this.storeName,
                     biz_number: this.bizNumber,
@@ -153,7 +153,7 @@ export default {
                     description: this.description,
                 });
                 alert('상점 등록이 완료되었습니다!');
-                this.$router.push({ name: 'JoinComplete' });
+                this.$router.push({ name: 'JoinCompleteSell' });
             } catch (error) {
                 if (error.response && error.response.data && error.response.data.message) {
                     alert(error.response.data.message);
@@ -165,7 +165,6 @@ export default {
     },
 };
 </script>
-
 <style scoped>
 .container {
     background-color: #fdfaf6;
