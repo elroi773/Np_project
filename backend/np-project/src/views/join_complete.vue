@@ -14,7 +14,7 @@
     methods: {
       gologin() {
         // 라우터가 설정되어 있다면 home 경로로 이동
-        this.$router.push('/login');
+        this.$router.push('/main');
       }
     }
   }
