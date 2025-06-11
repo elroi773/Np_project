@@ -96,10 +96,10 @@ export default {
       }
     },
     toggleNotifications() {
-      router.push('./notifications.vue')
+      router.push('./notifications')
     },
     goToProfile() {
-      this.$router.push('./profile.vue');
+      this.$router.push('./profile');
     },
     fetchNearbyDeals() {
       alert("주변 땡처리 정보를 가져옵니다!");
