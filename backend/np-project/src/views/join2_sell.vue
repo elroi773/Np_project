@@ -54,7 +54,7 @@
           alert("필수 항목에 모두 동의해주세요.");
           return;
         }
-        this.$router.push('/join3');
+        this.$router.push('/join3_sell');
       }
     }
   }
