@@ -28,7 +28,7 @@
       </button>
     </div>
 
-    <button class="next-button" @click="goNext">다음</button>
+    <button class="next-button" @click="next">다음</button>
 
   </div>
 </template>
@@ -50,9 +50,9 @@ function next() {
   } else {
     // 선택한 옵션에 따라 다른 페이지로 이동
     if (selected.value === 'buy') {
-      router.push('/join-buy')  // 예: 구매자 페이지
+      router.push('/join2')  // 예: 구매자 페이지
     } else if (selected.value === 'sell') {
-      router.push('/join-sell') // 예: 판매자 페이지
+      router.push('/join2_sell') // 예: 판매자 페이지
     }
   }
 }
