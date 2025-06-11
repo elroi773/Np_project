@@ -7,8 +7,8 @@
         <button @click="toggleNotifications" class="icon-button">
           <span class="material-icons">notifications</span>
         </button>
-        <button @click="toggleDarkMode" class="icon-button">
-          <span class="material-icons">dark_mode</span>
+        <button @click="goToProfile" class="icon-button">
+          <span class="material-icons">account_circle</span>
         </button>
       </div>
     </header>
@@ -44,25 +44,25 @@ export default {
     };
   },
   mounted() {
-  if (window.kakao && window.kakao.maps) {
-    this.$nextTick(() => {
-      this.initMap();
-    });
-  } else {
-    const script = document.createElement("script");
-    script.src = "https://dapi.kakao.com/v2/maps/sdk.js?appkey=5b7a047034c2cd477e680ad35bbb6862&autoload=false&libraries=services";
-    script.onload = () => {
-      kakao.maps.load(() => {
-        this.$nextTick(() => {
-          this.initMap();
-        });
+    if (window.kakao && window.kakao.maps) {
+      this.$nextTick(() => {
+        this.initMap();
       });
-    };
-    document.head.appendChild(script);
+    } else {
+      const script = document.createElement("script");
+      script.src = "https://dapi.kakao.com/v2/maps/sdk.js?appkey=5b7a047034c2cd477e680ad35bbb6862&autoload=false&libraries=services";
+      script.onload = () => {
+        kakao.maps.load(() => {
+          this.$nextTick(() => {
+            this.initMap();
+          });
+        });
+      };
+      document.head.appendChild(script);
+    }
   }
-}
 
-,
+  ,
   methods: {
     initMap() {
       const container = this.$refs.mapContainer;
@@ -98,12 +98,12 @@ export default {
     toggleNotifications() {
       router.push('./notifications.vue')
     },
-    toggleDarkMode() {
-      alert("다크 모드는 준비 중입니다!");
+    goToProfile() {
+      this.$router.push('./profile.vue');
     },
     fetchNearbyDeals() {
       alert("주변 땡처리 정보를 가져옵니다!");
-      
+
     },
     searchDeals() {
       alert(`검색어: ${this.searchQuery}`);
@@ -141,7 +141,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .header h1 {
@@ -171,7 +171,7 @@ body {
   margin: 1rem 1.5rem;
   background-color: #ffffff;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 
@@ -202,7 +202,7 @@ body {
   height: 400px;
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* 하단 버튼 */
@@ -223,4 +223,7 @@ body {
 .find-button:hover {
   background-color: #ff951c;
 }
+
+
+
 </style>
