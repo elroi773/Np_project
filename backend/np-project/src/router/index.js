@@ -8,9 +8,12 @@ import Join4 from '@/views/join4.vue'
 import Join5 from '@/views/join5.vue'
 import Login from '@/views/login.vue'
 import Main from '@/views/main.vue'
+import Main_sell from '@/views/main_sell.vue'
 import Join2_Sell from '@/views/join2_sell.vue'
 import Join4_Sell from '@/views/join4_sell.vue'
+import Join3_Sell from '@/views/join3_sell.vue'
 import Join_Complete from '@/views/join_complete.vue'
+import Join_Complete_Sell from '@/views/join_complete_sell.vue'
 import Notifications from '@/views/notifications.vue'
 import Profile from '@/views/profile.vue'
 
@@ -49,9 +52,9 @@ const routes = [
     component: Login
   },
   {
-    path: '/main',
-    name: 'Main',
-    component: Main
+    path: '/main_sell',
+    name: 'MainSell',
+    component: Main_sell
   },
   {
     path: "/notifications",
@@ -64,6 +67,11 @@ const routes = [
     component: Join2_Sell
   },
   {
+    path: '/join3_sell',
+    name: 'Join3Sell',
+    component: Join3_Sell
+  },
+  {
     path:'/join4_sell',
     name: 'Join4Sell',
     component: Join4_Sell
@@ -72,6 +80,11 @@ const routes = [
     path:'/join_complete',
     name: 'JoinComplete',
     component: Join_Complete
+  },
+  {
+    path:'/join_complete_sell',
+    name: 'JoinCompleteSell',
+    component: Join_Complete_Sell
   },
   {
     path: '/profile',
