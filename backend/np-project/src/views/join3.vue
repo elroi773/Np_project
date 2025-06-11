@@ -77,6 +77,11 @@ export default {
             this.userLat = position.coords.latitude;
             this.userLng = position.coords.longitude;
             this.showLocationMessage = false;
+
+            // ✅ 위치 정보를 localStorage에 저장
+            localStorage.setItem("user_latitude", this.userLat);
+            localStorage.setItem("user_longitude", this.userLng);
+
             this.loadMapScript();
           },
           (error) => {
@@ -87,7 +92,8 @@ export default {
       } else {
         alert("이 브라우저는 위치 정보를 지원하지 않습니다.");
       }
-    },
+    }
+    ,
     loadMapScript() {
       if (window.kakao && window.kakao.maps) {
         this.initMap();
