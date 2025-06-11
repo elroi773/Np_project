@@ -12,6 +12,7 @@ import Join2_Sell from '@/views/join2_sell.vue'
 import Join4_Sell from '@/views/join4_sell.vue'
 import Join_Complete from '@/views/join_complete.vue'
 import Notifications from '@/views/notifications.vue'
+import Profile from '@/views/profile.vue'
 
 
 
@@ -71,10 +72,16 @@ const routes = [
     path:'/join_complete',
     name: 'JoinComplete',
     component: Join_Complete
-  }
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: Profile, 
+  },
 ]
 
 const router = createRouter({
+  
   history: createWebHistory(),
   routes
 })

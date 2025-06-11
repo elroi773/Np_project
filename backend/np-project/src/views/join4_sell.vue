@@ -15,17 +15,32 @@
         <!-- 상점명 -->
         <div class="form-group">
             <label for="storeName">상점명</label>
-            <input id="storeName" type="text" v-model="storeName" placeholder="상점명을 입력하세요" />
+            <input
+                id="storeName"
+                type="text"
+                v-model="storeName"
+                placeholder="상점명을 입력하세요"
+                autocomplete="organization"
+            />
         </div>
 
         <!-- 사업자등록번호 -->
         <div class="form-group">
             <label for="bizNumber">사업자등록번호</label>
             <div class="input-row">
-                <input id="bizNumber" type="text" v-model="bizNumber" placeholder="예: 123-45-67890" />
+                <input
+                    id="bizNumber"
+                    type="text"
+                    v-model="bizNumber"
+                    placeholder="예: 123-45-67890"
+                    autocomplete="off"
+                />
                 <button class="check-button" @click="checkBizNumber">중복확인</button>
             </div>
-            <p class="check-message" :class="{ available: isAvailable, unavailable: !isAvailable && checked }">
+            <p
+                class="check-message"
+                :class="{ available: isAvailable, unavailable: !isAvailable && checked }"
+            >
                 {{ checkMessage }}
             </p>
         </div>
@@ -33,19 +48,37 @@
         <!-- 주소 -->
         <div class="form-group">
             <label for="address">주소</label>
-            <input id="address" type="text" v-model="address" placeholder="주소를 입력하세요" />
+            <input
+                id="address"
+                type="text"
+                v-model="address"
+                placeholder="주소를 입력하세요"
+                autocomplete="street-address"
+            />
         </div>
 
         <!-- 전화번호 -->
         <div class="form-group">
             <label for="phone">전화번호</label>
-            <input id="phone" type="text" v-model="phone" placeholder="예: 010-1234-5678" />
+            <input
+                id="phone"
+                type="text"
+                v-model="phone"
+                placeholder="예: 010-1234-5678"
+                autocomplete="tel"
+            />
         </div>
 
         <!-- 상점 설명 -->
         <div class="form-group">
             <label for="description">상점 설명</label>
-            <textarea id="description" v-model="description" placeholder="간단한 소개를 입력하세요" rows="4"></textarea>
+            <textarea
+                id="description"
+                v-model="description"
+                placeholder="간단한 소개를 입력하세요"
+                rows="4"
+                autocomplete="off"
+            ></textarea>
         </div>
 
         <!-- 다음 버튼 -->
@@ -54,6 +87,8 @@
 </template>
 
 <script>
+import axios from 'axios';//js 의 웹 요청 라이브러리
+
 export default {
     data() {
         return {
@@ -64,29 +99,40 @@ export default {
             description: '',
             checked: false,
             isAvailable: false,
-            checkMessage: ''
+            checkMessage: '',
+            userId: 'testuser123'  // 실제 로그인 유저 ID로 변경하세요
         };
     },
     methods: {
-        checkBizNumber() {
-            const usedBizNumbers = ['123-45-67890', '987-65-43210'];
-            this.checked = true;
-
+        async checkBizNumber() {
             if (!this.bizNumber.trim()) {
                 this.checkMessage = '사업자등록번호를 입력해주세요.';
                 this.isAvailable = false;
+                this.checked = true;
                 return;
             }
 
-            if (usedBizNumbers.includes(this.bizNumber.trim())) {
-                this.checkMessage = '이미 등록된 사업자번호입니다.';
+            try {
+                const response = await axios.get('http://localhost:3000/api/store/check-biznumber', {
+                    params: { bizNumber: this.bizNumber.trim() }
+                });
+
+                if (response.data.available) {
+                    this.checkMessage = '사용 가능한 사업자번호입니다.';
+                    this.isAvailable = true;
+                } else {
+                    this.checkMessage = '이미 등록된 사업자번호입니다.';
+                    this.isAvailable = false;
+                }
+                this.checked = true;
+
+            } catch (error) {
+                this.checkMessage = '중복 확인 중 오류가 발생했습니다.';
                 this.isAvailable = false;
-            } else {
-                this.checkMessage = '사용 가능한 사업자번호입니다.';
-                this.isAvailable = true;
+                this.checked = false;
             }
         },
-        submitStore() {
+        async submitStore() {
             if (!this.storeName || !this.bizNumber || !this.address || !this.phone || !this.description) {
                 alert('모든 항목을 입력해주세요.');
                 return;
@@ -97,12 +143,26 @@ export default {
                 return;
             }
 
-            alert('상점 등록이 완료되었습니다!');
-            this.$router.push({ name: 'JoinComplete' });
-            // 실제 API 연동은 여기서 수행합니다.
+            try {
+                const response = await axios.post('http://localhost:3000/api/store', {
+                    user_id: this.userId,
+                    store_name: this.storeName,
+                    biz_number: this.bizNumber,
+                    address: this.address,
+                    phone: this.phone,
+                    description: this.description,
+                });
+                alert('상점 등록이 완료되었습니다!');
+                this.$router.push({ name: 'JoinComplete' });
+            } catch (error) {
+                if (error.response && error.response.data && error.response.data.message) {
+                    alert(error.response.data.message);
+                } else {
+                    alert('상점 등록 중 오류가 발생했습니다.');
+                }
+            }
         },
-        
-    }
+    },
 };
 </script>
 
