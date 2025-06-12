@@ -15,6 +15,7 @@
     <div class="options-row">
       <label><input type="checkbox" v-model="autoLogin" /> 자동 로그인</label>
       <a href="#" @click.prevent="goToFindPassword">비밀번호 찾기</a>
+      <a href="#" @click.prevent="goToLogin_Seller">상인 로그인</a>
     </div>
 
     <button class="login-button" @click="login">로그인</button>
@@ -58,6 +59,9 @@ export default {
     },
     goToFindPassword() {
       this.$router.push('/');
+    },
+    goToLogin_Seller(){
+      this.$router.push('/login_sell');
     }
   }
 };
