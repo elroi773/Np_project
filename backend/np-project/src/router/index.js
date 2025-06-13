@@ -17,7 +17,7 @@ import Join_Complete_Sell from '@/views/join_complete_sell.vue'
 import Notifications from '@/views/notifications.vue'
 import Profile from '@/views/profile.vue'
 import LoginSell from '@/views/login_sell.vue'
-import Join4_Sell_User from '@/views/join4_sell_user.vue' // ✅ 추가
+
 
 const routes = [
   { path: '/', name: 'Index', component: Index },
@@ -33,7 +33,6 @@ const routes = [
   { path: '/join2_sell', name: 'Join2Sell', component: Join2_Sell },
   { path: '/join3_sell', name: 'Join3Sell', component: Join3_Sell },
   { path: '/join4_sell', name: 'Join4Sell', component: Join4_Sell },
-  { path: '/join4_sell_user', name: 'Join4SellUser', component: Join4_Sell_User }, // ✅ 추가
   { path: '/join_complete', name: 'JoinComplete', component: Join_Complete },
   { path: '/join_complete_sell', name: 'JoinCompleteSell', component: Join_Complete_Sell },
   { path: '/profile', name: 'Profile', component: Profile },
