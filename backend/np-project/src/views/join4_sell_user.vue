@@ -132,9 +132,7 @@ export default {
                     localStorage.setItem('currentUsername', this.username.trim());
                     
                     alert('회원가입이 완료되었습니다!');
-                    
-                    // 다음 단계로 이동 (상점 등록 페이지)
-                    this.$router.push('/join5-sell');
+                
                 } else {
                     alert('회원가입 중 오류가 발생했습니다.');
                 }
