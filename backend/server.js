@@ -186,7 +186,7 @@ app.post('/api/store', (req, res) => {
   }
 
   const query = `
-    INSERT INTO store (user_id, store_name, biz_number, address, phone, description)
+    INSERT INTO store (store_name, biz_number, address, phone, description)
     VALUES (?, ?, ?, ?, ?, ?)
   `;
 
