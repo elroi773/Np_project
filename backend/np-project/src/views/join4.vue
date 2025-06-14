@@ -7,7 +7,7 @@
             <span class="dot active"></span>
             <span class="dot active"></span>
             <span class="dot active"></span>
-            <span class="dot"></span>
+            <span class="dot active"></span>
         </div>
 
         <h2 class="title">회원 가입</h2>
@@ -15,6 +15,7 @@
         <!-- 아이디 입력 -->
         <div class="form-group">
             <label for="username">아이디 입력</label>
+            <p>아까 입력한 사용자 id를 입력해 주세요!</p>
             <div class="input-row">
                 <input 
                     id="username" 
@@ -68,14 +69,12 @@ export default {
         };
     },
     methods: {
-        // 아이디 입력 시 중복확인 상태 초기화
         resetCheck() {
             this.checked = false;
             this.isAvailable = false;
             this.checkMessage = '';
         },
 
-        // 아이디 중복 확인 (DB 조회)
         async checkDuplicate() {
             if (!this.username.trim()) {
                 this.checkMessage = '아이디를 입력해주세요.';
@@ -87,16 +86,11 @@ export default {
             this.isCheckingDuplicate = true;
 
             try {
-                // 먼저 서버 연결 테스트
-                console.log('서버 연결 테스트 중...');
-                
                 const response = await axios.post('http://localhost:3000/api/check-username', {
                     username: this.username.trim()
                 }, {
-                    timeout: 5000, // 5초 타임아웃
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
+                    timeout: 5000,
+                    headers: { 'Content-Type': 'application/json' }
                 });
 
                 this.checked = true;
@@ -117,9 +111,7 @@ export default {
             }
         },
 
-        // 회원가입 처리
         async goNext() {
-            // 유효성 검사
             if (!this.username || !this.password || !this.confirmPassword) {
                 alert('모든 항목을 입력해주세요.');
                 return;
@@ -135,7 +127,6 @@ export default {
                 return;
             }
 
-            // 비밀번호 강도 검사 (선택사항)
             if (this.password.length < 6) {
                 alert('비밀번호는 6자 이상 입력해주세요.');
                 return;
@@ -144,34 +135,28 @@ export default {
             this.isLoading = true;
 
             try {
-                // 회원가입 API 호출
-                const response = await axios.post('http://localhost:3000/api/signup', {
+                // 변경: /api/signup 대신 /api/users/add 호출
+                const response = await axios.post('http://localhost:3000/api/users/add', {
                     username: this.username.trim(),
                     password: this.password,
-                    userType: 'buyer' // 소비자로 가입
+                    userType: 'buyer' // 필요 시 변경 가능
                 });
 
                 if (response.data.success) {
-                    // 회원가입 성공 시 USER_ID를 로컬스토리지에 저장
                     const userId = response.data.userId;
-                    const username = response.data.username;
+                    const username = this.username.trim();
                     
                     localStorage.setItem('currentUserId', userId);
                     localStorage.setItem('currentUsername', username);
                     localStorage.setItem('userType', 'buyer');
                     
                     alert('회원가입이 완료되었습니다!');
-                    
-                    // 다음 단계로 이동 또는 메인 페이지로 이동
-                    // this.$router.push('/main'); // 소비자는 바로 메인으로
-                    // 또는 다음 단계가 있다면
-                    this.$router.push('/join5'); // 다음 회원가입 단계로
+                    this.$router.push({ name: 'JoinCompleteSell' });
                 } else {
                     alert(response.data.message || '회원가입 중 오류가 발생했습니다.');
                 }
             } catch (error) {
                 console.error('회원가입 오류:', error);
-                
                 if (error.response && error.response.data) {
                     alert(error.response.data.message || '회원가입 중 오류가 발생했습니다.');
                 } else {
@@ -184,6 +169,7 @@ export default {
     }
 };
 </script>
+
 
 <style scoped>
 body {
@@ -241,7 +227,11 @@ label {
     display: block;
     color: #333;
 }
-
+p{
+    color: #525252;
+    font-size: 12px;
+    margin-bottom: 10px;
+}
 .input-row {
     display: flex;
     gap: 10px;
