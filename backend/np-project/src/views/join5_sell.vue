@@ -1,6 +1,6 @@
 <template>
     <div class="container">
-        <div class="step">04</div>
+        <div class="step">05</div>
 
         <div class="dots">
             <span class="dot active"></span>
