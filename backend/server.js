@@ -2,6 +2,11 @@ const express = require('express');
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
+const db = require('./db');
+const path = require('path');
+const multer = require('multer');
+
+
 
 const app = express();
 
@@ -11,6 +16,17 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// multer 설정
+const storage = multer.diskStorage({
+    destination: path.join(__dirname, 'uploads'),
+    filename: (req, file, cb) => {
+      cb(null, `${Date.now()}-${file.originalname}`);
+    }
+  });
+  const upload = multer({ storage });
 
 // 테스트용 라우트
 app.get('/', (req, res) => {
@@ -168,7 +184,7 @@ app.get('/api/store/check-biznumber', async (req, res) => {
     }
 });
 
-// 상점 등록 API (async/await로 수정 및 SQL 문 수정)
+// 상점 등록 API
 app.post('/api/store', async (req, res) => {
     try {
         const { user_id, store_name, biz_number, address, phone, description } = req.body;
@@ -226,31 +242,30 @@ app.listen(PORT, () => {
     console.log(`서버가 포트 ${PORT}에서 실행 중입니다.`);
 });
 
-//로그인 api
-// app.post('/api/login', (req, res) => {
-//     const { username, password, autoLogin } = req.body;
-  
-//     if (!username || !password) {
-//       return res.status(400).json({ success: false, message: '아이디와 비밀번호를 모두 입력해주세요.' });
-//     }
-  
-//     const sql = 'SELECT * FROM users WHERE username = ? AND password = ?';
-//     db.query(sql, [username, password], (err, results) => {
-//       if (err) {
-//         console.error(err);
-//         return res.status(500).json({ success: false, message: '서버 오류' });
-//       }
-  
-//       if (results.length > 0) {
-//         // 로그인 성공
-//         res.json({ success: true, message: '로그인 성공' });
-//       } else {
-//         // 로그인 실패
-//         res.json({ success: false, message: '아이디 또는 비밀번호가 틀렸습니다.' });
-//       }
-//     });
-//   });
 
+
+//user 구매 횟수 
+app.post('/api/consumer/signup', async (req, res) => {
+    const { user_id, purchase_limit } = req.body;
+  
+    // 예시: MySQL 사용 시 DB 연결 필요
+    try {
+      const sql = 'INSERT INTO consumer (user_id, purchase_limit) VALUES (?, ?)';
+      await db.execute(sql, [user_id, purchase_limit]);
+  
+      res.status(200).json({ message: '구매자 등록 성공' });
+    } catch (err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+        res.status(409).json({ message: '이미 등록된 사용자입니다.' });
+      } else {
+        console.error('DB 오류:', err);
+        res.status(500).json({ message: '서버 오류' });
+      }
+    }
+  });
+  
+
+//로그인 api
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) {
@@ -263,7 +278,6 @@ app.post('/api/login', async (req, res) => {
     try {
       connection = await mysql.createConnection(dbConfig);
   
-      // USERS + CONSUMERS JOIN 해서 purchase_limit까지 함께 가져오기
       const [rows] = await connection.execute(
         `SELECT 
            u.user_id, 
@@ -290,6 +304,7 @@ app.post('/api/login', async (req, res) => {
           .json({ success: false, message: '비밀번호가 올바르지 않습니다.' });
       }
   
+      // 로그인 성공 시 필요한 데이터 반환
       res.json({
         success: true,
         data: {
@@ -307,51 +322,18 @@ app.post('/api/login', async (req, res) => {
     }
   });
 
+  
+//item 물품 추가 오늘의 땡처리 물품 추가 ㅎ 
 
-//user 구매 횟수 
-app.post('/api/consumer/signup', async (req, res) => {
-    const { user_id, purchase_limit } = req.body;
-    if (!user_id || purchase_limit == null) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'user_id와 purchase_limit을 모두 보내주세요.' });
-    }
+app.post('/api/items', upload.single('image'), (req, res) => {
+    console.log('POST /api/items 요청 받음');
+
+    const { itemName, description, price, inventory, contact } = req.body;
+    const image = req.file;
   
-    let connection;
-    try {
-      connection = await mysql.createConnection(dbConfig);
+    console.log('등록된 물품:', { itemName, description, price, inventory, contact, image });
   
-      // 이미 등록된 구매자 인지 확인 (1:1 관계)
-      const [exists] = await connection.execute(
-        `SELECT user_id FROM consumers WHERE user_id = ?`,
-        [user_id]
-      );
-      if (exists.length > 0) {
-        return res
-          .status(409)
-          .json({ success: false, message: '이미 구매자 정보가 등록되어 있습니다.' });
-      }
-  
-      // INSERT
-      const [result] = await connection.execute(
-        `INSERT INTO consumers (user_id, purchase_limit)
-         VALUES (?, ?)`,
-        [user_id, purchase_limit]
-      );
-  
-      res.status(201).json({
-        success: true,
-        message: '구매자 정보 등록 완료',
-        consumerId: result.insertId
-      });
-  
-    } catch (err) {
-      console.error('구매자 등록 오류:', err);
-      res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
-    } finally {
-      if (connection) await connection.end();
-    }
+    res.status(201).json({ message: '물품 등록 성공' });
   });
-
-
+  
 module.exports = app;
