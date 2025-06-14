@@ -27,16 +27,22 @@
     data() {
       return {
         user: {
-          id: "todaydeal_user",
+          id: "",
           profileImg: "", // 이미지 없으면 기본 이미지로
           catchCount: 7,
         },
         defaultProfile: "https://cdn-icons-png.flaticon.com/512/847/847969.png",
       };
     },
+    created(){
+      const storedId = localStorage.getItem("currentUsername");
+      if(storedId){
+        this.user.id = storedId;
+      }
+    },
     methods: {
       goBack() {
-        this.$router.push('./main');
+        this.$router.push('./Main');
       },
     },
   };

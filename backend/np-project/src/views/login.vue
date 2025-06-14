@@ -40,27 +40,33 @@ export default {
       }
 
       try {
-        const response = await axios.post('/api/login', {
+        const response = await axios.post('http://localhost:3000/api/login', {
           username: this.username,
-          password: this.password,
-          autoLogin: this.autoLogin,
-        });
+          password: this.password
+        }, { withCredentials: true }); // 쿠키 필요하면 설정
 
         if (response.data.success) {
           alert('로그인 성공!');
+          // 예: 로그인 후 user_id, username, purchase_limit 받아서 로컬 스토리지 저장 가능
+          const userData = response.data.data;
+          localStorage.setItem('user', JSON.stringify(userData));
           this.$router.push('/main');
         } else {
           alert(response.data.message || '로그인 실패');
         }
       } catch (error) {
-        alert('서버 오류가 발생했습니다.');
-        console.error(error);
+        if (error.response) {
+          alert(`로그인 실패: ${error.response.data.message || error.response.statusText}`);
+          console.error('Response data:', error.response.data);
+        } else {
+          alert('서버 오류가 발생했습니다.');
+        }
       }
     },
     goToFindPassword() {
-      this.$router.push('/');
+      this.$router.push('/find-password');  // 실제 비밀번호 찾기 페이지 경로로 변경
     },
-    goToLogin_Seller(){
+    goToLogin_Seller() {
       this.$router.push('/login_sell');
     }
   }

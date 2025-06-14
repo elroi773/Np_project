@@ -96,10 +96,10 @@ export default {
       }
     },
     toggleNotifications() {
-      router.push('./notifications')
+      this.$router.push('/Notifications');
     },
     goToProfile() {
-      this.$router.push('./profile');
+      this.$router.push('/Profile');
     },
     fetchNearbyDeals() {
       alert("주변 땡처리 정보를 가져옵니다!");

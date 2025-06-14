@@ -7,7 +7,7 @@
             <span class="dot active"></span>
             <span class="dot active"></span>
             <span class="dot active"></span>
-            <span class="dot active"></span>
+            <span class="dot "></span>
         </div>
 
         <h2 class="title">회원 가입</h2>
@@ -15,7 +15,6 @@
         <!-- 아이디 입력 -->
         <div class="form-group">
             <label for="username">아이디 입력</label>
-            <p>아까 입력한 사용자 id를 입력해 주세요!</p>
             <div class="input-row">
                 <input 
                     id="username" 
@@ -146,12 +145,10 @@ export default {
                     const userId = response.data.userId;
                     const username = this.username.trim();
                     
-                    localStorage.setItem('currentUserId', userId);
                     localStorage.setItem('currentUsername', username);
-                    localStorage.setItem('userType', 'buyer');
                     
                     alert('회원가입이 완료되었습니다!');
-                    this.$router.push({ name: 'JoinCompleteSell' });
+                    this.$router.push({ name: 'Join5' });
                 } else {
                     alert(response.data.message || '회원가입 중 오류가 발생했습니다.');
                 }
