@@ -1,13 +1,15 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
 import Index from '../views/index.vue' 
+import Main from '../views/main.vue' 
 import Join1 from '@/views/join1.vue'
 import Join2 from '@/views/join2.vue'
 import Join3 from '@/views/join3.vue'
 import Join4 from '@/views/join4.vue'
 import Join5 from '@/views/join5.vue'
 import Login from '@/views/login.vue'
-import Main from '@/views/main.vue'
+import Add from '@/views/Add.vue'
+
 import Main_sell from '@/views/main_sell.vue'
 import Join2_Sell from '@/views/join2_sell.vue'
 import Join3_Sell from '@/views/join3_sell.vue'
@@ -20,6 +22,7 @@ import Profile from '@/views/profile.vue'
 import LoginSell from '@/views/login_sell.vue'
 
 
+
 const routes = [
   { path: '/', name: 'Index', component: Index },
   { path: '/join1', name: 'Join1', component: Join1 },
@@ -30,6 +33,8 @@ const routes = [
   { path: '/login', name: 'Login', component: Login },
   { path: '/login_sell', name: 'LoginSell', component: LoginSell },
   { path: '/main_sell', name: 'MainSell', component: Main_sell },
+  { path: '/main', name: 'Main', component: Main },
+  { path: '/Add', name: 'Add', component: Add },
   { path: '/notifications', name: 'Notifications', component: Notifications },
   { path: '/join2_sell', name: 'Join2Sell', component: Join2_Sell },
   { path: '/join3_sell', name: 'Join3Sell', component: Join3_Sell },
