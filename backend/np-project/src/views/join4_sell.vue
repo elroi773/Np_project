@@ -15,44 +15,25 @@
         <!-- 사용자 ID -->
         <div class="form-group">
             <label for="userId">사용자 ID</label>
-            <input
-                id="userId"
-                type="text"
-                v-model="userId"
-                placeholder="사용자 ID를 입력하세요"
-                autocomplete="username"
-            />
+            <input id="userId" type="text" v-model="userId" placeholder="사용자 ID를 입력하세요" autocomplete="username" />
         </div>
 
         <!-- 상점명 -->
         <div class="form-group">
             <label for="storeName">상점명</label>
-            <input
-                id="storeName"
-                type="text"
-                v-model="storeName"
-                placeholder="상점명을 입력하세요"
-                autocomplete="organization"
-            />
+            <input id="storeName" type="text" v-model="storeName" placeholder="상점명을 입력하세요"
+                autocomplete="organization" />
         </div>
 
         <!-- 사업자등록번호 -->
         <div class="form-group">
             <label for="bizNumber">사업자등록번호</label>
             <div class="input-row">
-                <input
-                    id="bizNumber"
-                    type="text"
-                    v-model="bizNumber"
-                    placeholder="예: 123-45-67890"
-                    autocomplete="off"
-                />
+                <input id="bizNumber" type="text" v-model="bizNumber" placeholder="예: 123-45-67890"
+                    autocomplete="off" />
                 <button class="check-button" @click="checkBizNumber">중복확인</button>
             </div>
-            <p
-                class="check-message"
-                :class="{ available: isAvailable, unavailable: !isAvailable && checked }"
-            >
+            <p class="check-message" :class="{ available: isAvailable, unavailable: !isAvailable && checked }">
                 {{ checkMessage }}
             </p>
         </div>
@@ -60,37 +41,20 @@
         <!-- 주소 -->
         <div class="form-group">
             <label for="address">주소</label>
-            <input
-                id="address"
-                type="text"
-                v-model="address"
-                placeholder="주소를 입력하세요"
-                autocomplete="street-address"
-            />
+            <input id="address" type="text" v-model="address" placeholder="주소를 입력하세요" autocomplete="street-address" />
         </div>
 
         <!-- 전화번호 -->
         <div class="form-group">
             <label for="phone">전화번호</label>
-            <input
-                id="phone"
-                type="text"
-                v-model="phone"
-                placeholder="예: 010-1234-5678"
-                autocomplete="tel"
-            />
+            <input id="phone" type="text" v-model="phone" placeholder="예: 010-1234-5678" autocomplete="tel" />
         </div>
 
         <!-- 상점 설명 -->
         <div class="form-group">
             <label for="description">상점 설명</label>
-            <textarea
-                id="description"
-                v-model="description"
-                placeholder="간단한 소개를 입력하세요"
-                rows="4"
-                autocomplete="off"
-            ></textarea>
+            <textarea id="description" v-model="description" placeholder="간단한 소개를 입력하세요" rows="4"
+                autocomplete="off"></textarea>
         </div>
 
         <!-- 등록 버튼 -->
@@ -101,10 +65,13 @@
 <script>
 import axios from 'axios';
 
+// API 기본 URL 설정
+const API_BASE_URL = 'http://localhost:3000';
+
 export default {
     data() {
         return {
-            userId: '',  // 사용자가 입력할 수 있도록 빈 문자열로 초기화
+            userId: '',
             storeName: '',
             bizNumber: '',
             address: '',
@@ -125,27 +92,55 @@ export default {
             }
 
             try {
-                const response = await axios.get('/api/store/check-biznumber', {
-                    params: { bizNumber: this.bizNumber.trim() }
+                console.log('중복 확인 요청 시작:', this.bizNumber.trim());
+                
+                const response = await axios.get(`${API_BASE_URL}/api/store/check-biznumber`, {
+                    params: {
+                        bizNumber: this.bizNumber.trim()
+                    },
+                    timeout: 5000 // 5초 타임아웃 설정
                 });
 
-                if (response.data.available) {
-                    this.checkMessage = '사용 가능한 사업자번호입니다.';
-                    this.isAvailable = true;
+                console.log('서버 응답:', response.data);
+
+                if (response.data.success) {
+                    if (response.data.available) {
+                        this.checkMessage = '사용 가능한 사업자등록번호입니다.';
+                        this.isAvailable = true;
+                    } else {
+                        this.checkMessage = '이미 등록된 사업자등록번호입니다.';
+                        this.isAvailable = false;
+                    }
                 } else {
-                    this.checkMessage = '이미 등록된 사업자번호입니다.';
+                    this.checkMessage = response.data.message || '확인 중 오류가 발생했습니다.';
                     this.isAvailable = false;
                 }
-                this.checked = true;
 
+                this.checked = true;
             } catch (error) {
                 console.error('사업자번호 중복 확인 오류:', error);
-                this.checkMessage = '중복 확인 중 오류가 발생했습니다.';
+                
+                if (error.code === 'ECONNREFUSED') {
+                    this.checkMessage = '서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.';
+                } else if (error.response) {
+                    // 서버에서 응답이 온 경우
+                    console.log('에러 응답:', error.response.status, error.response.data);
+                    this.checkMessage = error.response.data?.message || `서버 오류 (${error.response.status})`;
+                } else if (error.request) {
+                    // 요청은 보냈지만 응답이 없는 경우
+                    console.log('요청 오류:', error.request);
+                    this.checkMessage = '서버로부터 응답을 받을 수 없습니다.';
+                } else {
+                    // 요청 설정 중 오류가 발생한 경우
+                    console.log('설정 오류:', error.message);
+                    this.checkMessage = '요청 처리 중 오류가 발생했습니다.';
+                }
+                
                 this.isAvailable = false;
-                this.checked = false;
+                this.checked = true;
             }
         },
-        
+
         validateForm() {
             const requiredFields = [
                 { field: 'userId', name: '사용자 ID' },
@@ -188,19 +183,25 @@ export default {
 
                 console.log('전송할 데이터:', storeData);
 
-                const response = await axios.post('/api/store', storeData);
-                
+                const response = await axios.post(`${API_BASE_URL}/api/store`, storeData, {
+                    timeout: 10000 // 10초 타임아웃
+                });
+
+                console.log('서버 응답:', response.data);
+
                 if (response.data.success) {
                     alert('상점 등록이 완료되었습니다!');
-                    this.$router.push({ name: 'JoinCompleteSell' });
+                    this.$router.push({ name: 'Join5Sell' });
                 } else {
                     alert(response.data.message || '상점 등록에 실패했습니다.');
                 }
-                
+
             } catch (error) {
                 console.error('상점 등록 오류:', error);
-                
-                if (error.response) {
+
+                if (error.code === 'ECONNREFUSED') {
+                    alert('서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.');
+                } else if (error.response) {
                     // 서버에서 응답이 온 경우
                     const errorMessage = error.response.data?.message || '상점 등록 중 오류가 발생했습니다.';
                     alert(errorMessage);
