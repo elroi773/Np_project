@@ -226,4 +226,132 @@ app.listen(PORT, () => {
     console.log(`서버가 포트 ${PORT}에서 실행 중입니다.`);
 });
 
+//로그인 api
+// app.post('/api/login', (req, res) => {
+//     const { username, password, autoLogin } = req.body;
+  
+//     if (!username || !password) {
+//       return res.status(400).json({ success: false, message: '아이디와 비밀번호를 모두 입력해주세요.' });
+//     }
+  
+//     const sql = 'SELECT * FROM users WHERE username = ? AND password = ?';
+//     db.query(sql, [username, password], (err, results) => {
+//       if (err) {
+//         console.error(err);
+//         return res.status(500).json({ success: false, message: '서버 오류' });
+//       }
+  
+//       if (results.length > 0) {
+//         // 로그인 성공
+//         res.json({ success: true, message: '로그인 성공' });
+//       } else {
+//         // 로그인 실패
+//         res.json({ success: false, message: '아이디 또는 비밀번호가 틀렸습니다.' });
+//       }
+//     });
+//   });
+
+app.post('/api/login', async (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res
+        .status(400)
+        .json({ success: false, message: '아이디와 비밀번호를 모두 입력해주세요.' });
+    }
+  
+    let connection;
+    try {
+      connection = await mysql.createConnection(dbConfig);
+  
+      // USERS + CONSUMERS JOIN 해서 purchase_limit까지 함께 가져오기
+      const [rows] = await connection.execute(
+        `SELECT 
+           u.user_id, 
+           u.password AS hashedPw, 
+           c.purchase_limit
+         FROM users AS u
+         LEFT JOIN consumers AS c
+           ON u.user_id = c.user_id
+         WHERE u.username = ?`,
+        [username]
+      );
+  
+      if (rows.length === 0) {
+        return res
+          .status(401)
+          .json({ success: false, message: '존재하지 않는 아이디입니다.' });
+      }
+  
+      const { user_id, hashedPw, purchase_limit } = rows[0];
+      const passOk = await bcrypt.compare(password, hashedPw);
+      if (!passOk) {
+        return res
+          .status(401)
+          .json({ success: false, message: '비밀번호가 올바르지 않습니다.' });
+      }
+  
+      res.json({
+        success: true,
+        data: {
+          user_id,
+          username,
+          purchase_limit: purchase_limit ?? 1
+        }
+      });
+  
+    } catch (err) {
+      console.error('로그인 오류:', err);
+      res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+    } finally {
+      if (connection) await connection.end();
+    }
+  });
+
+
+//user 구매 횟수 
+app.post('/api/consumer/signup', async (req, res) => {
+    const { user_id, purchase_limit } = req.body;
+    if (!user_id || purchase_limit == null) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'user_id와 purchase_limit을 모두 보내주세요.' });
+    }
+  
+    let connection;
+    try {
+      connection = await mysql.createConnection(dbConfig);
+  
+      // 이미 등록된 구매자 인지 확인 (1:1 관계)
+      const [exists] = await connection.execute(
+        `SELECT user_id FROM consumers WHERE user_id = ?`,
+        [user_id]
+      );
+      if (exists.length > 0) {
+        return res
+          .status(409)
+          .json({ success: false, message: '이미 구매자 정보가 등록되어 있습니다.' });
+      }
+  
+      // INSERT
+      const [result] = await connection.execute(
+        `INSERT INTO consumers (user_id, purchase_limit)
+         VALUES (?, ?)`,
+        [user_id, purchase_limit]
+      );
+  
+      res.status(201).json({
+        success: true,
+        message: '구매자 정보 등록 완료',
+        consumerId: result.insertId
+      });
+  
+    } catch (err) {
+      console.error('구매자 등록 오류:', err);
+      res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+    } finally {
+      if (connection) await connection.end();
+    }
+  });
+
+
 module.exports = app;
