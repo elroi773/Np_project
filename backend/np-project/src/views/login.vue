@@ -43,14 +43,21 @@ export default {
         const response = await axios.post('http://localhost:3000/api/login', {
           username: this.username,
           password: this.password
-        }, { withCredentials: true }); // 쿠키 필요하면 설정
+        }, { withCredentials: true });
 
         if (response.data.success) {
           alert('로그인 성공!');
-          // 예: 로그인 후 user_id, username, purchase_limit 받아서 로컬 스토리지 저장 가능
           const userData = response.data.data;
           localStorage.setItem('user', JSON.stringify(userData));
-          this.$router.push('/main');
+
+          // ✅ 사용자 타입별 분기
+          if (userData.purchase_limit !== null) {
+            this.$router.push('/main'); // 소비자용
+          } else if (userData.store_id !== null) {
+            this.$router.push('/main_sell'); // 상인용
+          } else {
+            alert('유저 타입을 식별할 수 없습니다.');
+          }
         } else {
           alert(response.data.message || '로그인 실패');
         }
