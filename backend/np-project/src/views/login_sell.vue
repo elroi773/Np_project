@@ -1,57 +1,21 @@
 <template>
     <div class="container">
-        <h2 class="title">로그인</h2>
-
-        <!-- 사용자 유형 선택 -->
-        <div class="user-type-group">
-            <div class="user-type-buttons">
-                <button 
-                    class="user-type-button"
-                    :class="{ active: userType === 'consumer' }"
-                    @click="setUserType('consumer')"
-                >
-                    소비자
-                </button>
-                <button 
-                    class="user-type-button"
-                    :class="{ active: userType === 'seller' }"
-                    @click="setUserType('seller')"
-                >
-                    판매자
-                </button>
-            </div>
-        </div>
+        <h2 class="title">상인 로그인</h2>
 
         <!-- 아이디 -->
         <div class="form-group">
             <label for="username">아이디</label>
-            <input
-                id="username"
-                type="text"
-                v-model="username"
-                placeholder="아이디를 입력하세요"
-                autocomplete="username"
-                @keyup.enter="login"
-            />
+            <input id="username" type="text" v-model="username" placeholder="아이디를 입력하세요" autocomplete="username"
+                @keyup.enter="login" />
         </div>
 
         <!-- 비밀번호 -->
         <div class="form-group">
             <label for="password">비밀번호</label>
             <div class="password-input-container">
-                <input
-                    id="password"
-                    :type="showPassword ? 'text' : 'password'"
-                    v-model="password"
-                    placeholder="비밀번호를 입력하세요"
-                    autocomplete="current-password"
-                    @keyup.enter="login"
-                />
-                <button 
-                    type="button" 
-                    class="password-toggle" 
-                    @click="togglePassword"
-                >
+                <input id="password" :type="showPassword ? 'text' : 'password'" v-model="password"
+                    placeholder="비밀번호를 입력하세요" autocomplete="current-password" @keyup.enter="login" />
+                <button type="button" class="password-toggle" @click="togglePassword">
                     {{ showPassword ? '🙈' : '👁️' }}
                 </button>
             </div>
@@ -70,11 +34,7 @@
         </div>
 
         <!-- 로그인 버튼 -->
-        <button 
-            class="login-button" 
-            @click="login"
-            :disabled="isLoading"
-        >
+        <button class="login-button" @click="login" :disabled="isLoading">
             {{ isLoading ? '로그인 중...' : '로그인' }}
         </button>
 
@@ -94,17 +54,12 @@ export default {
         return {
             username: '',
             password: '',
-            userType: 'consumer', // 'consumer' 또는 'seller'
             autoLogin: false,
             showPassword: false,
             isLoading: false
         };
     },
     methods: {
-        setUserType(type) {
-            this.userType = type;
-        },
-
         togglePassword() {
             this.showPassword = !this.showPassword;
         },
@@ -117,11 +72,6 @@ export default {
 
             if (!this.password.trim()) {
                 alert('비밀번호를 입력해주세요.');
-                return false;
-            }
-
-            if (this.username.length < 4) {
-                alert('아이디는 4자 이상 입력해주세요.');
                 return false;
             }
 
@@ -144,39 +94,34 @@ export default {
                 const loginData = {
                     username: this.username.trim(),
                     password: this.password.trim(),
-                    userType: this.userType,
                     autoLogin: this.autoLogin
                 };
 
                 console.log('로그인 요청 데이터:', { ...loginData, password: '***' });
 
-                const response = await axios.post('/api/login', loginData);
+                const response = await axios.post('/api/login_seller', { username, password });
 
-                if (response.data.success) {
-                    // 로그인 성공 시 사용자 정보 저장
+                if (response.data.success && response.data.user) {
                     const userInfo = response.data.user;
-                    
-                    // 세션 스토리지에 사용자 정보 저장 (자동 로그인이 아닌 경우)
+
+                    if (!userInfo.username) {
+                        throw new Error('서버 응답에 사용자 이름 정보가 없습니다.');
+                    }
+
+                    // 저장 로직
                     if (!this.autoLogin) {
                         sessionStorage.setItem('userInfo', JSON.stringify(userInfo));
                     } else {
-                        // 자동 로그인인 경우 더 오래 유지되는 저장소 사용
                         localStorage.setItem('userInfo', JSON.stringify(userInfo));
                         localStorage.setItem('autoLogin', 'true');
                     }
 
                     alert(`${userInfo.username}님, 환영합니다!`);
 
-                    // 사용자 유형에 따라 다른 페이지로 이동
-                    if (this.userType === 'seller') {
-                        this.$router.push('/seller-main');
-                    } else {
-                        this.$router.push('/main');
-                    }
-
                 } else {
                     alert(response.data.message || '로그인에 실패했습니다.');
                 }
+
 
             } catch (error) {
                 console.error('로그인 오류:', error);
@@ -207,12 +152,12 @@ export default {
         // 자동 로그인 체크
         const autoLoginEnabled = localStorage.getItem('autoLogin');
         const userInfo = localStorage.getItem('userInfo');
-        
+
         if (autoLoginEnabled && userInfo) {
             try {
                 const user = JSON.parse(userInfo);
                 console.log('자동 로그인 사용자:', user);
-                
+
                 // 자동 로그인 로직 실행
                 if (user.userType === 'seller') {
                     this.$router.push('/seller-main');
@@ -226,13 +171,15 @@ export default {
             }
         }
     }
+
 };
 </script>
 
 <style scoped>
-body{
+body {
     background-color: #fdfaf6;
 }
+
 .container {
     min-height: 100vh;
     padding: 40px 20px;
@@ -375,12 +322,12 @@ input::placeholder {
     transition: all 0.3s;
 }
 
-.checkbox-label input[type="checkbox"]:checked + .checkmark {
+.checkbox-label input[type="checkbox"]:checked+.checkmark {
     background-color: #ffa339;
     border-color: #ffa339;
 }
 
-.checkbox-label input[type="checkbox"]:checked + .checkmark::after {
+.checkbox-label input[type="checkbox"]:checked+.checkmark::after {
     content: '✓';
     position: absolute;
     top: -2px;
