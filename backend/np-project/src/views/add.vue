@@ -58,7 +58,25 @@ export default {
             contact: "",
             imageFile: null,
             imagePreview: null,
+            latitude: null,
+            longitude: null,
         };
+    },
+    mounted() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    this.latitude = position.coords.latitude;
+                    this.longitude = position.coords.longitude;
+                    console.log("위도:", this.latitude, "경도:", this.longitude);
+                },
+                error => {
+                    console.error("위치 정보를 가져올 수 없습니다:", error);
+                }
+            );
+        } else {
+            alert("이 브라우저는 위치 정보를 지원하지 않습니다.");
+        }
     },
     methods: {
         async submitItem() {
@@ -76,15 +94,21 @@ export default {
                 formData.append('contact', this.contact);
                 formData.append('image', this.imageFile);
 
-                const response = await axios.post('http://localhost:3000/api/items', formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
+                formData.append('latitude', this.latitude);
+                formData.append('longitude', this.longitude);
+
+
+                const response = await fetch("http://localhost:3000/api/items", {
+                    method: 'POST',
+                    body: formData
                 });
 
-                alert('물품이 성공적으로 등록되었습니다!');
-                this.resetForm();  // 여기서 호출
+                if (!response.ok) {
+                    throw new Error('서버 응답 실패');
+                }
 
+                alert('물품이 성공적으로 등록되었습니다!');
+                this.resetForm();
                 this.$router.push('/Main');
             } catch (error) {
                 console.error(error);
@@ -176,7 +200,7 @@ form input[type="file"] {
 
 .submit-button {
     width: 100%;
-    background-color: #36a3f7;
+    background-color: #ffa339;
     color: white;
     border: none;
     padding: 0.75rem;
@@ -185,9 +209,5 @@ form input[type="file"] {
     border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-}
-
-.submit-button:hover {
-    background-color: #1e86d6;
 }
 </style>
