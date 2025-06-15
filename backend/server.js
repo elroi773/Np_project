@@ -268,61 +268,74 @@ app.post('/api/consumer/signup', async (req, res) => {
 //로그인 api
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
+
     if (!username || !password) {
-      return res
-        .status(400)
-        .json({ success: false, message: '아이디와 비밀번호를 모두 입력해주세요.' });
+        return res.status(400).json({ success: false, message: '아이디와 비밀번호를 모두 입력해주세요.' });
     }
-  
+
     let connection;
     try {
-      connection = await mysql.createConnection(dbConfig);
-  
-      const [rows] = await connection.execute(
-        `SELECT 
-           u.user_id, 
-           u.password AS hashedPw, 
-           c.purchase_limit
-         FROM users AS u
-         LEFT JOIN consumers AS c
-           ON u.user_id = c.user_id
-         WHERE u.username = ?`,
-        [username]
-      );
-  
-      if (rows.length === 0) {
-        return res
-          .status(401)
-          .json({ success: false, message: '존재하지 않는 아이디입니다.' });
-      }
-  
-      const { user_id, hashedPw, purchase_limit } = rows[0];
-      const passOk = await bcrypt.compare(password, hashedPw);
-      if (!passOk) {
-        return res
-          .status(401)
-          .json({ success: false, message: '비밀번호가 올바르지 않습니다.' });
-      }
-  
-      // 로그인 성공 시 필요한 데이터 반환
-      res.json({
-        success: true,
-        data: {
-          user_id,
-          username,
-          purchase_limit: purchase_limit ?? 1
-        }
-      });
-  
-    } catch (err) {
-      console.error('로그인 오류:', err);
-      res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
-    } finally {
-      if (connection) await connection.end();
-    }
-  });
+        connection = await mysql.createConnection(dbConfig);
 
-  
+        // 사용자 확인
+        const [userRows] = await connection.execute(
+            'SELECT user_id, username, password FROM users WHERE username = ?',
+            [username]
+        );
+
+        if (userRows.length === 0) {
+            return res.status(401).json({ success: false, message: '존재하지 않는 아이디입니다.' });
+        }
+
+        const user = userRows[0];
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            return res.status(401).json({ success: false, message: '비밀번호가 올바르지 않습니다.' });
+        }
+
+        const user_id = user.user_id;
+
+        // 유저 타입 확인
+        const [storeRows] = await connection.execute(
+            'SELECT * FROM store WHERE user_id = ?',
+            [user_id]
+        );
+
+        const [consumerRows] = await connection.execute(
+            'SELECT * FROM consumers WHERE user_id = ?',
+            [user_id]
+        );
+
+        let userType = 'unknown';
+
+        if (storeRows.length > 0) {
+            userType = 'seller';
+        } else if (consumerRows.length > 0) {
+            userType = 'consumer';
+        }
+
+        res.json({
+            success: true,
+            data: {
+                user_id,
+                username: user.username,
+                userType,
+                storeInfo: storeRows[0] || null,
+                purchase_limit: consumerRows[0]?.purchase_limit ?? null
+            }
+        });
+
+    } catch (err) {
+        console.error('로그인 오류:', err);
+        res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+    } finally {
+        if (connection) await connection.end();
+    }
+});
+
+
+
 //item 물품 추가 오늘의 땡처리 물품 추가 ㅎ 
 
 app.post('/api/items', upload.single('image'), (req, res) => {
