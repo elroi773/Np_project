@@ -8,7 +8,7 @@
           <span class="material-icons">notifications</span>
         </button>
         <button @click="goToProfile" class="icon-button">
-          <span class="material-icons">account_circle</span>
+          <span class="material-icons">profile</span>
         </button>
       </div>
     </header>
@@ -224,6 +224,20 @@ body {
   background-color: #ff951c;
 }
 
+.icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  color: #555;
+  padding: 0.5rem;
+  transition: background-color 0.2s ease;
+  border-radius: 50%;
+}
+
+.icon-button:hover {
+  background-color: #f0f0f0;
+}
 
 
 </style>
