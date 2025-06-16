@@ -9,7 +9,7 @@
             <span class="dot active"></span>
             <span class="dot active"></span>
         </div>
-        <h2>가임을 환영합니다! {{ username }}님!</h2>
+        <h2>가입을 환영합니다! {{ username }}님!</h2>
         <br>
         <h2 class="title">모두가 함께 나누는 혜택, 정직한 소비로 지켜주세요!</h2>
 
@@ -18,7 +18,6 @@
             악용을 방지하고 더 많은 이웃과 나누기 위해<br> <span class="limit">일주일 구매 횟수를 제한</span>합니다.<br />
             양해와 협조 부탁드립니다!
         </p>
-
 
         <!-- 구매 횟수 설정 -->
         <div class="purchase-section">
@@ -37,13 +36,12 @@
 
 <script>
 import axios from 'axios';
-
 export default {
     data() {
         return {
             count: 1,
             username: '',
-            purchaseLimit: ''
+            user_id: '',
         };
     },
     mounted() {
@@ -57,21 +55,75 @@ export default {
         decrease() {
             if (this.count > 1) this.count--;
         },
+        // Vue 컴포넌트의 수정된 goNext 메서드
         async goNext() {
+            // 사용자명 검증
+            if (!this.username || this.username.trim() === '') {
+                alert('사용자 정보가 없습니다. 다시 로그인해주세요.');
+                this.$router.push({ name: 'Login' }); // 로그인 페이지로 리다이렉트
+                return;
+            }
+
+            // 구매 횟수 검증
+            if (this.count < 1 || this.count > 7) {
+                alert('구매 횟수는 1~7회 사이에서 선택해주세요.');
+                return;
+            }
+
             try {
-                const res = await axios.post('http://localhost:3000/api/consumer/signup', {
-                    user_id: this.username,  // 여기 꼭 username으로
+                console.log('전송할 데이터:', {
+                    username: this.username,
+                    purchase_limit: this.count
+                });
+                axios.post('/api/test', { test: 'data' });
+
+                const response = await axios.post('/api/consumers/signup', {
+                    username: this.username.trim(),
                     purchase_limit: this.count,
                 });
-                alert('구매자 등록 성공!');
-                this.$router.push({ name: 'JoinComplete' });
-            } catch (error) {
-                if (error.response?.status === 409) {
-                    alert('이미 등록된 사용자입니다.');
+
+                console.log('서버 응답:', response.data);
+
+                if (response.data.success) {
+                    alert('구매자 등록이 완료되었습니다!');
+                    // localStorage에서 민감한 정보 제거
+                    localStorage.removeItem('currentUsername');
+                    this.$router.push({ name: 'JoinComplete' });
                 } else {
-                    alert('서버 오류가 발생했습니다.');
+                    alert(response.data.message || '등록 중 오류가 발생했습니다.');
                 }
-                console.error('API 호출 오류:', error);
+
+            } catch (err) {
+                console.error('요청 실패:', err);
+
+                let errorMessage = '회원가입 중 오류가 발생했습니다.';
+
+                if (err.response) {
+                    // 서버에서 응답을 받은 경우
+                    const serverMessage = err.response.data?.message;
+                    if (serverMessage) {
+                        errorMessage = serverMessage;
+                    }
+
+                    console.error('서버 오류 상태:', err.response.status);
+                    console.error('서버 오류 데이터:', err.response.data);
+
+                    // 특정 상태 코드에 따른 처리
+                    if (err.response.status === 404) {
+                        errorMessage = '사용자를 찾을 수 없습니다. 다시 로그인해주세요.';
+                        this.$router.push({ name: 'Login' });
+                        return;
+                    }
+                } else if (err.request) {
+                    // 네트워크 오류
+                    errorMessage = '네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.';
+                    console.error('네트워크 오류:', err.request);
+                } else {
+                    // 기타 오류
+                    console.error('기타 오류:', err.message);
+                }
+
+                alert(errorMessage);
             }
         }
     }
@@ -129,7 +181,7 @@ export default {
     border: 1px solid #e5e5e5;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
     font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
-    text-align: center;
+    text-: center;
     max-width: 480px;
 }
 
@@ -137,7 +189,7 @@ export default {
     font-weight: 600;
 }
 
-.highlight {
+align .highlight {
     background: linear-gradient(transparent 70%, #fff4a3 70%);
     color: #222;
 }
@@ -145,8 +197,6 @@ export default {
 .limit {
     color: #d64545;
 }
-
-
 
 .purchase-section {
     margin-top: 30px;
