@@ -14,7 +14,7 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // multer 설정
@@ -95,31 +95,84 @@ app.get('/api/store/check-biznumber', async (req, res) => {
     }
 });
 
-// 상점 등록 API
+//상점 등록
 app.post('/api/store', async (req, res) => {
     try {
-        const { user_id, store_name, biz_number, address, phone, description } = req.body;
+        console.log('=== 상점 등록 요청 시작 ===');
+        console.log('요청 헤더:', req.headers);
+        console.log('원본 body:', req.body);
+        console.log('body 타입:', typeof req.body);
+        console.log('body 키들:', Object.keys(req.body || {}));
+        
+        const { username, store_name, biz_number, address, phone, description } = req.body;
 
-        if (!user_id || !store_name || !biz_number || !address || !phone) {
-            return res.status(400).json({ success: false, message: '필수 항목을 모두 입력해주세요.' });
+        console.log('추출된 데이터:', {
+            username: username,
+            store_name: store_name,
+            biz_number: biz_number,
+            address: address,
+            phone: phone,
+            description: description
+        });
+
+        // 필수 항목 검사
+        const missingFields = [];
+        if (!username || username.toString().trim() === '') missingFields.push('username');
+        if (!store_name || store_name.toString().trim() === '') missingFields.push('store_name');
+        if (!biz_number || biz_number.toString().trim() === '') missingFields.push('biz_number');
+        if (!address || address.toString().trim() === '') missingFields.push('address');
+        if (!phone || phone.toString().trim() === '') missingFields.push('phone');
+
+        if (missingFields.length > 0) {
+            console.log('누락된 필드들:', missingFields);
+            return res.status(400).json({ 
+                success: false, 
+                message: `필수 항목을 모두 입력해주세요. 누락: ${missingFields.join(', ')}`
+            });
         }
 
-        const [existingStore] = await db.query('SELECT store_id FROM store WHERE biz_number = ?', [biz_number]);
+        // 1. username → user_id 조회
+        console.log('사용자 조회 시작:', username);
+        const [userRows] = await db.query('SELECT user_id FROM users WHERE username = ?', [username.toString().trim()]);
+        if (userRows.length === 0) {
+            console.log('사용자 찾을 수 없음:', username);
+            return res.status(404).json({ success: false, message: '사용자를 찾을 수 없습니다.' });
+        }
+        const user_id = userRows[0].user_id;
+        console.log('사용자 ID 찾음:', user_id);
+
+        // 2. 사업자등록번호 중복 체크
+        const [existingStore] = await db.query('SELECT store_id FROM store WHERE biz_number = ?', [biz_number.toString().trim()]);
         if (existingStore.length > 0) {
             return res.status(409).json({ success: false, message: '이미 등록된 사업자등록번호입니다.' });
         }
 
+        // 3. store 테이블에 등록
+        const insertData = [
+            user_id, 
+            store_name.toString().trim(), 
+            biz_number.toString().trim(), 
+            address.toString().trim(), 
+            phone.toString().trim(), 
+            description ? description.toString().trim() : ''
+        ];
+        
+        console.log('DB 삽입 데이터:', insertData);
+        
         const [result] = await db.query(
             'INSERT INTO store (user_id, store_name, biz_number, address, phone, description) VALUES (?, ?, ?, ?, ?, ?)',
-            [user_id, store_name, biz_number, address, phone, description]
+            insertData
         );
 
-        res.json({ success: true, message: '상점 등록이 완료되었습니다.', storeId: result.insertId });
+        console.log('삽입 성공:', result.insertId);
+        res.status(200).json({ success: true, message: '상점 등록이 완료되었습니다.', storeId: result.insertId });
+
     } catch (error) {
-        console.error('상점 등록 오류:', error);
-        res.status(500).json({ success: false, message: '상점 등록 중 오류가 발생했습니다.' });
+        console.error('상점 등록 오류 상세:', error);
+        res.status(500).json({ success: false, message: '상점 등록 중 오류가 발생했습니다.', error: error.message });
     }
 });
+
 
 app.post('/api/consumers/signup', async (req, res) => {
     console.log('🚀 구매자 등록 API 호출');
@@ -219,8 +272,43 @@ app.post('/api/consumers/signup', async (req, res) => {
         });
     }
 }); 
+
+// 사용자 프로필 API
+app.get('/api/user-profile/:username', async (req, res) => {
+    const { username } = req.params;
   
+    try {
+      const [users] = await db.query(
+        'SELECT user_id, username, profile_img FROM USERS WHERE username = ?',
+        [username]
+      );
   
+      if (users.length === 0) {
+        return res.status(404).json({ success: false, message: '사용자 없음' });
+      }
+  
+      const user = users[0];
+  
+      const [consumers] = await db.query(
+        'SELECT purchase_limit FROM CONSUMERS WHERE user_id = ?',
+        [user.user_id]
+      );
+  
+      res.json({
+        success: true,
+        data: {
+          id: user.username,
+          profileImg: user.profile_img,
+          catchCount: consumers[0]?.purchase_limit || 0,
+        },
+      });
+    } catch (error) {
+      console.error('프로필 조회 오류:', error);
+      res.status(500).json({ success: false, message: '서버 오류' });
+    }
+  });
+  
+
 
 
 // 로그인 API
@@ -244,7 +332,7 @@ app.post('/api/login', async (req, res) => {
         }
 
         const user_id = user.user_id;
-
+        //USER_ID 로 ㅇ유형 조회 
         const [storeRows] = await db.query('SELECT * FROM STORE WHERE user_id = ?', [user_id]);
         const [consumerRows] = await db.query('SELECT * FROM CONSUMERS WHERE user_id = ?', [user_id]);
 
@@ -268,13 +356,21 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// 물품 등록
+// 물품 등록 API
 app.post('/api/items', upload.single('image'), async (req, res) => {
     const { itemName, description, price, inventory, contact } = req.body;
     const image = req.file;
 
+    // 필수값 체크
     if (!itemName || !description || !price || !inventory || !contact) {
         return res.status(400).json({ success: false, message: '모든 필수 항목을 입력해주세요.' });
+    }
+
+    // 숫자 타입 유효성 검사
+    const priceInt = parseInt(price, 10);
+    const inventoryInt = parseInt(inventory, 10);
+    if (isNaN(priceInt) || isNaN(inventoryInt)) {
+        return res.status(400).json({ success: false, message: '가격과 재고는 숫자여야 합니다.' });
     }
 
     try {
@@ -288,8 +384,8 @@ app.post('/api/items', upload.single('image'), async (req, res) => {
         const [result] = await db.query(sql, [
             itemName,
             description,
-            parseInt(price),
-            parseInt(inventory),
+            priceInt,
+            inventoryInt,
             contact,
             imagePath
         ]);
@@ -304,7 +400,6 @@ app.post('/api/items', upload.single('image'), async (req, res) => {
         res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
     }
 });
-
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
