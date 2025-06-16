@@ -2,6 +2,9 @@
     <div class="add-item-container">
         <h2>땡처리 물품 추가하기</h2>
 
+        <!-- 지도 추가 -->
+        <div id="map" class="map" v-show="mapLoaded"></div>
+
         <form @submit.prevent="submitItem">
             <label>
                 물품명
@@ -43,9 +46,7 @@
 </template>
 
 <script>
-
 import axios from 'axios';
-
 
 export default {
     name: "AddItem",
@@ -60,25 +61,60 @@ export default {
             imagePreview: null,
             latitude: null,
             longitude: null,
+            map: null,
+            marker: null,
+            mapLoaded: false
         };
     },
     mounted() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                position => {
-                    this.latitude = position.coords.latitude;
-                    this.longitude = position.coords.longitude;
-                    console.log("위도:", this.latitude, "경도:", this.longitude);
-                },
-                error => {
-                    console.error("위치 정보를 가져올 수 없습니다:", error);
-                }
-            );
-        } else {
-            alert("이 브라우저는 위치 정보를 지원하지 않습니다.");
-        }
+        this.loadKakaoMapScript();
     },
     methods: {
+        loadKakaoMapScript() {
+            if (window.kakao && window.kakao.maps) {
+                this.initMap();
+            } else {
+                const script = document.createElement('script');
+                script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_KAKAO_API_KEY&autoload=false`;
+                script.onload = () => {
+                    window.kakao.maps.load(() => {
+                        this.initMap();
+                    });
+                };
+                document.head.appendChild(script);
+            }
+        },
+
+        initMap() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        this.latitude = position.coords.latitude;
+                        this.longitude = position.coords.longitude;
+
+                        const container = document.getElementById('map');
+                        const options = {
+                            center: new kakao.maps.LatLng(this.latitude, this.longitude),
+                            level: 3
+                        };
+                        this.map = new kakao.maps.Map(container, options);
+
+                        this.marker = new kakao.maps.Marker({
+                            position: new kakao.maps.LatLng(this.latitude, this.longitude),
+                            map: this.map
+                        });
+
+                        this.mapLoaded = true;
+                    },
+                    error => {
+                        console.error("위치 정보를 가져올 수 없습니다:", error);
+                    }
+                );
+            } else {
+                alert("이 브라우저는 위치 정보를 지원하지 않습니다.");
+            }
+        },
+
         async submitItem() {
             if (!this.itemName || !this.description || !this.price || !this.inventory || !this.contact) {
                 alert("모든 필드를 채워주세요.");
@@ -96,14 +132,12 @@ export default {
                 formData.append('latitude', this.latitude);
                 formData.append('longitude', this.longitude);
 
-                // axios 요청
                 const response = await axios.post('http://localhost:3000/api/items', formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     }
                 });
 
-                // 성공 처리
                 alert('물품이 성공적으로 등록되었습니다!');
                 this.resetForm();
                 this.$router.push('/Main_sell');
@@ -128,7 +162,6 @@ export default {
             if (file) {
                 this.imageFile = file;
 
-                // 이미지 미리보기
                 const reader = new FileReader();
                 reader.onload = e => {
                     this.imagePreview = e.target.result;
@@ -136,8 +169,7 @@ export default {
                 reader.readAsDataURL(file);
             }
         }
-    }
-
+    },
 };
 </script>
 
@@ -150,6 +182,13 @@ export default {
     border-radius: 10px;
     box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
     font-family: 'Pretendard', sans-serif;
+}
+
+.map {
+    width: 100%;
+    height: 300px;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
 }
 
 h2 {
