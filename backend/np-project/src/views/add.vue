@@ -93,23 +93,20 @@ export default {
                 formData.append('inventory', this.inventory);
                 formData.append('contact', this.contact);
                 formData.append('image', this.imageFile);
-
                 formData.append('latitude', this.latitude);
                 formData.append('longitude', this.longitude);
 
-
-                const response = await fetch("http://localhost:3000/api/items", {
-                    method: 'POST',
-                    body: formData
+                // axios 요청
+                const response = await axios.post('http://localhost:3000/api/items', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
                 });
 
-                if (!response.ok) {
-                    throw new Error('서버 응답 실패');
-                }
-
+                // 성공 처리
                 alert('물품이 성공적으로 등록되었습니다!');
                 this.resetForm();
-                this.$router.push('/Main');
+                this.$router.push('/Main_sell');
             } catch (error) {
                 console.error(error);
                 alert('등록 중 오류가 발생했습니다.');
