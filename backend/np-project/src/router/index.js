@@ -19,7 +19,6 @@ import Join_Complete from '@/views/join_complete.vue'
 import Join_Complete_Sell from '@/views/join_complete_sell.vue'
 import Notifications from '@/views/notifications.vue'
 import Profile from '@/views/profile.vue'
-import LoginSell from '@/views/login_sell.vue'
 
 
 
@@ -31,7 +30,6 @@ const routes = [
   { path: '/join4', name: 'Join4', component: Join4 },
   { path: '/join5', name: 'Join5', component: Join5 },
   { path: '/login', name: 'Login', component: Login },
-  { path: '/login_sell', name: 'LoginSell', component: LoginSell },
   { path: '/main_sell', name: 'MainSell', component: Main_sell },
   { path: '/main', name: 'Main', component: Main },
   { path: '/Add', name: 'Add', component: Add },
