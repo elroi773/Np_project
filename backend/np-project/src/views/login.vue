@@ -15,7 +15,6 @@
     <div class="options-row">
       <label><input type="checkbox" v-model="autoLogin" /> 자동 로그인</label>
       <a href="#" @click.prevent="goToFindPassword">비밀번호 찾기</a>
-      <a href="#" @click.prevent="goToLogin_Seller">상인 로그인</a>
     </div>
 
     <button class="login-button" @click="login">로그인</button>
@@ -24,6 +23,7 @@
 
 <script>
 import axios from 'axios';
+
 export default {
   data() {
     return {
@@ -40,45 +40,54 @@ export default {
       }
 
       try {
-        const response = await axios.post('http://localhost:3000/api/login', {
+        const response = await axios.post('/api/login', {
           username: this.username,
           password: this.password
-        }, { withCredentials: true });
+        });
 
         if (response.data.success) {
-          alert('로그인 성공!');
           const userData = response.data.data;
-          localStorage.setItem('user', JSON.stringify(userData));
+          console.log('로그인 성공:', userData);
 
-          // ✅ 사용자 타입별 분기
-          if (userData.purchase_limit !== null) {
-            this.$router.push('/main'); // 소비자용
-          } else if (userData.store_id !== null) {
-            this.$router.push('/main_sell'); // 상인용
-          } else {
-            alert('유저 타입을 식별할 수 없습니다.');
+          // ✅ 자동 로그인 저장 (선택 사항)
+          if (this.autoLogin) {
+            localStorage.setItem('autoLogin', JSON.stringify(userData));
           }
+
+          //유저 타입에 따라 분기 처리
+          if (userData.userType === 'seller') {
+            this.$router.push('/main_sell');
+          } else if (userData.userType === 'consumer') {
+            this.$router.push('/main');
+          } else {
+            alert('유저 타입을 확인할 수 없습니다.');
+          }
+
         } else {
-          alert(response.data.message || '로그인 실패');
+          alert('로그인 실패: ' + response.data.message);
         }
       } catch (error) {
-        if (error.response) {
-          alert(`로그인 실패: ${error.response.data.message || error.response.statusText}`);
-          console.error('Response data:', error.response.data);
-        } else {
-          alert('서버 오류가 발생했습니다.');
-        }
+        console.error('로그인 요청 오류:', error);
+        alert('서버 오류가 발생했습니다.');
       }
     },
     goToFindPassword() {
-      this.$router.push('/find-password');  // 실제 비밀번호 찾기 페이지 경로로 변경
+      this.$router.push('/find-password');  // 실제 비밀번호 찾기 페이지로 수정
     },
     goToLogin_Seller() {
       this.$router.push('/login_sell');
     }
+  },
+  created() {
+    const saved = localStorage.getItem('autoLogin');
+    if (saved) {
+      const user = JSON.parse(saved);
+      this.$router.push(user.userType === 'seller' ? '/main_sell' : '/main');
+    }
   }
 };
 </script>
+
 
 
 <style scoped>
