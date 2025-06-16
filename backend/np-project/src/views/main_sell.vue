@@ -30,7 +30,6 @@
         + 물품 추가하기
       </button>
     </div>
-
   </div>
 </template>
 
@@ -41,13 +40,24 @@ export default {
     return {
       searchQuery: "",
       map: null,
-      markers: [],   // 여러 마커를 저장할 배열
-      deals: [],     // 땡처리 물품 데이터 저장
+      markers: [],
+      deals: [], // 땡처리 물품 데이터
+      infowindow: null, // 인포윈도우 재사용
     };
   },
   mounted() {
     this.loadKakaoMap();
-    this.fetchDeals();  // 추가: 물품 데이터 가져오기
+    // 라우터 내비게이션 가드 추가 (router/index.js 또는 main.js 등)
+    this.$router.afterEach((to, from) => {
+      if (to.name === 'Main_sell') {
+        // 메인 페이지 컴포넌트 인스턴스가 있으면 fetchDeals 재호출
+        const mainComponent = this.$root.$children.find(c => c.$options.name === 'Main');
+        if (mainComponent) {
+          mainComponent.fetchDeals();
+        }
+      }
+    });
+
   },
   methods: {
     loadKakaoMap() {
@@ -57,7 +67,8 @@ export default {
         });
       } else {
         const script = document.createElement("script");
-        script.src = "https://dapi.kakao.com/v2/maps/sdk.js?appkey=5b7a047034c2cd477e680ad35bbb6862&autoload=false&libraries=services";
+        script.src =
+          "https://dapi.kakao.com/v2/maps/sdk.js?appkey=5b7a047034c2cd477e680ad35bbb6862&autoload=false&libraries=services";
         script.onload = () => {
           kakao.maps.load(() => {
             this.$nextTick(() => {
@@ -69,26 +80,48 @@ export default {
       }
     },
 
+    initMap() {
+      // 기본 중심 좌표: 서울시청 (위도, 경도)
+      const center = new kakao.maps.LatLng(37.5665, 126.978);
+      this.map = new kakao.maps.Map(this.$refs.mapContainer, {
+        center,
+        level: 5,
+      });
+
+      // 인포윈도우 하나만 만들어 재사용 (마커 클릭 시 교체)
+      this.infowindow = new kakao.maps.InfoWindow({ removable: true });
+
+      // 마커 추가
+      this.addMarkers();
+    },
+
     async fetchDeals() {
       try {
-        const res = await fetch("/api/deals");  // 실제 API 주소로 변경 필요
+        const res = await fetch("/api/deals"); // 실제 API 주소 사용
         this.deals = await res.json();
-        this.addMarkers();  // 마커 추가 함수 호출
+
+        // 마커 업데이트
+        if (this.map) {
+          this.addMarkers();
+        }
       } catch (error) {
         console.error("땡처리 물품 로딩 실패", error);
       }
     },
 
     addMarkers() {
-      // 기존 마커 삭제
-      this.markers.forEach(marker => marker.setMap(null));
+      // 기존 마커 모두 삭제
+      this.markers.forEach((marker) => marker.setMap(null));
       this.markers = [];
 
-      this.deals.forEach(deal => {
+      this.deals.forEach((deal) => {
+        // 위도, 경도 없으면 스킵
+        if (!deal.latitude || !deal.longitude) return;
+
         const position = new kakao.maps.LatLng(deal.latitude, deal.longitude);
 
-        // 마커 이미지 만들기 (이미지 있으면 썸네일로)
-        let markerImage;
+        // 마커 이미지가 있으면 썸네일 크기로 지정
+        let markerImage = null;
         if (deal.imageUrl) {
           const imageSize = new kakao.maps.Size(40, 40);
           markerImage = new kakao.maps.MarkerImage(deal.imageUrl, imageSize);
@@ -98,45 +131,49 @@ export default {
           map: this.map,
           position,
           title: deal.name,
-          image: markerImage,
+          image: markerImage || undefined,
         });
 
-        // 클릭 시 인포윈도우(팝업) 띄우기
-        const infowindow = new kakao.maps.InfoWindow({
-          content: `
-          <div style="padding:5px; max-width:200px;">
-            <strong>${deal.name}</strong><br/>
-            가격: ${deal.price}원<br/>
-            연락처: ${deal.contact}<br/>
-            <img src="${deal.imageUrl}" alt="${deal.name}" style="width:100%; max-height:100px; object-fit:cover; margin-top:5px;"/>
-          </div>
-        `
-        });
+        // 마커 클릭 시 인포윈도우에 정보 표시
+        kakao.maps.event.addListener(marker, "click", () => {
+          const content = `
+            <div style="padding:10px; max-width:220px;">
+              <strong style="font-size:1.1rem;">${deal.name}</strong><br/>
+              가격: ${deal.price.toLocaleString()}원<br/>
+              연락처: ${deal.contact}<br/>
+              <div style="margin-top:8px;">
+                ${deal.imageUrl
+              ? `<img src="${deal.imageUrl}" alt="${deal.name}" style="width:100%; max-height:120px; object-fit:cover; border-radius:6px;" />`
+              : `<div style="color:#aaa; font-size:0.9rem; text-align:center;">이미지 없음</div>`
+            }
+              </div>
+            </div>
+          `;
 
-        kakao.maps.event.addListener(marker, 'click', function () {
-          infowindow.open(this.map, marker);
-        }.bind(this));
+          this.infowindow.setContent(content);
+          this.infowindow.open(this.map, marker);
+        });
 
         this.markers.push(marker);
       });
     },
-    toggleNotifications() {
-      router.push('./notifications')
-    },
-    goToProfile() {
-      this.$router.push('./profile');
-    },
-    fetchNearbyDeals() {
-      alert("주변 땡처리 정보를 가져옵니다!");
 
+    toggleNotifications() {
+      this.$router.push("./notifications");
     },
+
+    goToProfile() {
+      this.$router.push("./profile");
+    },
+
     searchDeals() {
       alert(`검색어: ${this.searchQuery}`);
+      // 필요 시 API 요청하여 검색 결과로 deals 갱신 후 addMarkers() 호출
     },
+
     goToAddItem() {
-      // 물품 추가 페이지로 이동
-      this.$router.push('Add');
-    }
+      this.$router.push("Add");
+    },
   },
 };
 </script>
