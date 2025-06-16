@@ -40,29 +40,85 @@ export default {
     return {
       searchQuery: "",
       map: null,            // 카카오맵 객체
-      marker: null,         // 마커 객체
+      markers: [],         // 마커 객체
     };
   },
   mounted() {
     if (window.kakao && window.kakao.maps) {
-      this.$nextTick(() => {
-        this.initMap();
-      });
+      this.$nextTick(this.initMap);
     } else {
       const script = document.createElement("script");
       script.src = "https://dapi.kakao.com/v2/maps/sdk.js?appkey=5b7a047034c2cd477e680ad35bbb6862&autoload=false&libraries=services";
       script.onload = () => {
         kakao.maps.load(() => {
-          this.$nextTick(() => {
-            this.initMap();
-          });
+          this.$nextTick(this.initMap);
         });
       };
       document.head.appendChild(script);
     }
-  }
+  },
+  methods: {
+    initMap() {
+      const container = this.$refs.mapContainer;
+      const options = {
+        center: new kakao.maps.LatLng(37.5665, 126.978),
+        level: 3,
+      };
+      this.map = new kakao.maps.Map(container, options);
 
-  ,
+      // 현재 위치 중심 잡기
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const locPosition = new kakao.maps.LatLng(lat, lng);
+            this.map.setCenter(locPosition);
+          },
+          () => {
+            alert("위치 정보가 필요합니다!");
+          }
+        );
+      }
+    },
+
+    fetchNearbyDeals() {
+      const storeDataList = JSON.parse(localStorage.getItem("store_data")) || [];
+
+      // 기존 마커 제거
+      this.markers.forEach(m => m.setMap(null));
+      this.markers = [];
+
+      storeDataList.forEach(store => {
+        const position = new kakao.maps.LatLng(store.latitude, store.longitude);
+
+        const marker = new kakao.maps.Marker({
+          position,
+          map: this.map,
+        });
+
+        const itemList = store.items.map(item => `<li>${item.name} - ${item.price}원</li>`).join("");
+        const content = `
+          <div style="padding:5px; font-size:14px;">
+            <strong>${store.storeName}</strong>
+            <ul>${itemList}</ul>
+          </div>
+        `;
+
+        const infowindow = new kakao.maps.InfoWindow({ content });
+
+        kakao.maps.event.addListener(marker, 'click', () => {
+          infowindow.open(this.map, marker);
+        });
+
+        this.markers.push(marker); // 마커 저장
+      });
+
+      if (storeDataList.length === 0) {
+        alert("저장된 가게 정보가 없습니다.");
+      }
+    }
+  },
   methods: {
     initMap() {
       const container = this.$refs.mapContainer;
@@ -107,7 +163,31 @@ export default {
     },
     searchDeals() {
       alert(`검색어: ${this.searchQuery}`);
-    },
+    }, createMarkersFromStorage() {
+      const storedData = JSON.parse(localStorage.getItem('store_data')) || [];
+
+      storedData.forEach((store) => {
+        const markerPosition = new kakao.maps.LatLng(store.lat, store.lng);
+        const marker = new kakao.maps.Marker({
+          position: markerPosition,
+          map: this.map,
+        });
+
+        const itemList = store.items.map(item => `<li>${item.name} - ${item.price}원</li>`).join('');
+        const content = `
+      <div style="padding:10px;">
+        <strong>${store.store_name}</strong>
+        <ul>${itemList}</ul>
+      </div>
+    `;
+
+        const infoWindow = new kakao.maps.InfoWindow({ content });
+
+        kakao.maps.event.addListener(marker, 'click', () => {
+          infoWindow.open(this.map, marker);
+        });
+      });
+    }
   },
 };
 </script>
@@ -238,6 +318,4 @@ body {
 .icon-button:hover {
   background-color: #f0f0f0;
 }
-
-
 </style>
