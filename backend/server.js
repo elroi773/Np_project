@@ -620,6 +620,23 @@ app.post("/api/deals/:id/claim", async (req, res) => {
   }
 });
 
+// ... app, 라우트 등 코드들 ...
+
+// 1시간마다 픽업 실패 체크하는 주기 작업
+setInterval(() => {
+  const now = new Date();
+  claimedDeals.forEach((deal, userId) => {
+    if (!deal.pickedUp && now > deal.pickupDeadline) {
+      console.log(`사용자 ${userId}가 픽업 실패! 페널티 적용 필요`);
+      
+      if (!penaltyCounts[userId]) penaltyCounts[userId] = 0;
+      penaltyCounts[userId]++;
+      
+      claimedDeals.delete(userId);
+    }
+  });
+}, 1000 * 60 * 60); // 1시간마다 체크
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`서버가 포트 ${PORT}에서 실행 중입니다.`);
