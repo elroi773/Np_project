@@ -23,7 +23,7 @@ import Profile from '@/views/profile.vue'
 
 
 const routes = [
-  { path: '/', name: 'Index', component: Index },
+  { path: '/index', name: 'Index', component: Index },
   { path: '/join1', name: 'Join1', component: Join1 },
   { path: '/join2', name: 'Join2', component: Join2 },
   { path: '/join3', name: 'Join3', component: Join3 },
