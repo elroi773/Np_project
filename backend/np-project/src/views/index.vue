@@ -13,14 +13,12 @@
 export default {
   methods: {
     goToJoin() {
-      this.$router.push('/join1');
+      this.$router.push({ name: 'Join1' });
+    },goToLogin() {
+      this.$router.push({ name: 'Login' });
     }
-  },methods: {
-    goToLogin() {
-      this.$router.push('/login');
-    }
-  }
 
+  }
 }
 
 </script>
