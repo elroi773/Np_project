@@ -15,170 +15,201 @@
 
     <!-- 검색창 -->
     <div class="search-container">
-      <input type="text" v-model="searchQuery" placeholder="검색어를 입력하세요" />
+      <input 
+        type="text" 
+        v-model="searchQuery" 
+        placeholder="검색어를 입력하세요"
+        @keyup.enter="searchDeals"
+      />
       <button @click="searchDeals" class="search-button">
         <span class="material-icons">search</span>
       </button>
     </div>
 
+    <!-- 로딩 상태 -->
+    <div v-if="loading" class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>땡처리 물품을 불러오는 중...</p>
+    </div>
+
     <!-- 카카오맵 -->
-    <div ref="mapContainer" class="map-container"></div>
+    <div v-else class="map-wrapper">
+      <KakaoMap 
+        :deals="filteredDeals" 
+        @claim-deal="handleClaimDeal"
+        @marker-click="handleMarkerClick"
+      />
+      
+      <!-- 물품 개수 표시 -->
+      <div class="deals-count">
+        총 {{ filteredDeals.length }}개의 땡처리 물품
+      </div>
+    </div>
 
     <!-- 물품 추가 버튼 -->
     <div class="add-item-container">
       <button @click="goToAddItem" class="add-item-button">
-        + 물품 추가하기
+        <span class="material-icons">add</span>
+        물품 추가하기
+      </button>
+    </div>
+
+    <!-- 새로고침 버튼 -->
+    <div class="refresh-container">
+      <button @click="refreshDeals" class="refresh-button" :disabled="loading">
+        <span class="material-icons">refresh</span>
+        새로고침
       </button>
     </div>
   </div>
 </template>
 
 <script>
+import KakaoMap from "@/components/KakaoMap.vue";
+
 export default {
-  name: "Main",
+  name: "Main_sell",
+  components: {
+    KakaoMap
+  },
   data() {
     return {
       searchQuery: "",
-      map: null,
-      markers: [],
-      deals: [], // 땡처리 물품 데이터
-      infowindow: null, // 인포윈도우 재사용
+      deals: [],
+      loading: false,
+      error: null
     };
   },
-  mounted() {
-    this.loadKakaoMap();
-    // 라우터 내비게이션 가드 추가 (router/index.js 또는 main.js 등)
-    this.$router.afterEach((to, from) => {
-      if (to.name === 'Main_sell') {
-        // 메인 페이지 컴포넌트 인스턴스가 있으면 fetchDeals 재호출
-        const mainComponent = this.$root.$children.find(c => c.$options.name === 'Main');
-        if (mainComponent) {
-          mainComponent.fetchDeals();
-        }
+  computed: {
+    // 검색어에 따른 필터링된 deals
+    filteredDeals() {
+      if (!this.searchQuery.trim()) {
+        return this.deals;
       }
-    });
-
+      
+      const query = this.searchQuery.toLowerCase().trim();
+      return this.deals.filter(deal => 
+        deal.name.toLowerCase().includes(query) ||
+        deal.description.toLowerCase().includes(query) ||
+        deal.contact.toLowerCase().includes(query)
+      );
+    }
+  },
+  async mounted() {
+    await this.fetchDeals();
   },
   methods: {
-    loadKakaoMap() {
-      if (window.kakao && window.kakao.maps) {
-        this.$nextTick(() => {
-          this.initMap();
-        });
-      } else {
-        const script = document.createElement("script");
-        script.src =
-          "https://dapi.kakao.com/v2/maps/sdk.js?appkey=5b7a047034c2cd477e680ad35bbb6862&autoload=false&libraries=services";
-        script.onload = () => {
-          kakao.maps.load(() => {
-            this.$nextTick(() => {
-              this.initMap();
-            });
-          });
-        };
-        document.head.appendChild(script);
+    async fetchDeals() {
+      this.loading = true;
+      this.error = null;
+      
+      try {
+        const response = await fetch("/api/deals");
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // 서버에서 에러 응답을 보낸 경우
+        if (data.success === false) {
+          throw new Error(data.message || '데이터를 불러오는데 실패했습니다.');
+        }
+        
+        this.deals = Array.isArray(data) ? data : [];
+        console.log(`${this.deals.length}개의 땡처리 물품을 불러왔습니다.`);
+        
+      } catch (error) {
+        console.error("땡처리 물품 로딩 실패:", error);
+        this.error = error.message;
+        this.deals = [];
+        
+        // 사용자에게 에러 알림
+        alert(`땡처리 물품을 불러오는데 실패했습니다: ${error.message}`);
+      } finally {
+        this.loading = false;
       }
     },
-
-    initMap() {
-      // 기본 중심 좌표: 서울시청 (위도, 경도)
-      const center = new kakao.maps.LatLng(37.5665, 126.978);
-      this.map = new kakao.maps.Map(this.$refs.mapContainer, {
-        center,
-        level: 5,
-      });
-
-      // 인포윈도우 하나만 만들어 재사용 (마커 클릭 시 교체)
-      this.infowindow = new kakao.maps.InfoWindow({ removable: true });
-
-      // 마커 추가
-      this.addMarkers();
+    
+    async refreshDeals() {
+      await this.fetchDeals();
     },
-
-    async fetchDeals() {
+    
+    goToAddItem() {
+      this.$router.push("/add");
+    },
+    
+    goToProfile() {
+      this.$router.push("/profile");
+    },
+    
+    toggleNotifications() {
+      this.$router.push("/notifications");
+    },
+    
+    searchDeals() {
+      // 검색은 computed property로 실시간 처리되므로
+      // 여기서는 검색 관련 이벤트만 처리
+      console.log(`검색어: ${this.searchQuery}`);
+      
+      if (this.filteredDeals.length === 0 && this.searchQuery.trim()) {
+        alert(`'${this.searchQuery}' 검색 결과가 없습니다.`);
+      }
+    },
+    
+    // 땡잡기 처리
+    handleClaimDeal(deal) {
+      console.log('땡잡기 처리:', deal);
+      
+      // 여기서 실제 땡잡기 API 호출
+      this.claimDeal(deal.id);
+    },
+    
+    // 마커 클릭 처리
+    handleMarkerClick(deal) {
+      console.log('마커 클릭:', deal);
+    },
+    
+    // 실제 땡잡기 API 호출
+    async claimDeal(dealId) {
       try {
-        const res = await fetch("/api/deals"); // 실제 API 주소 사용
-        this.deals = await res.json();
-
-        // 마커 업데이트
-        if (this.map) {
-          this.addMarkers();
+        const response = await fetch(`/api/deals/${dealId}/claim`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          alert('땡잡기 성공!');
+          // 데이터 새로고침
+          await this.fetchDeals();
+        } else {
+          throw new Error('땡잡기 실패');
         }
       } catch (error) {
-        console.error("땡처리 물품 로딩 실패", error);
+        console.error('땡잡기 오류:', error);
+        alert('땡잡기 처리 중 오류가 발생했습니다.');
       }
-    },
-
-    addMarkers() {
-      // 기존 마커 모두 삭제
-      this.markers.forEach((marker) => marker.setMap(null));
-      this.markers = [];
-
-      this.deals.forEach((deal) => {
-        // 위도, 경도 없으면 스킵
-        if (!deal.latitude || !deal.longitude) return;
-
-        const position = new kakao.maps.LatLng(deal.latitude, deal.longitude);
-
-        // 마커 이미지가 있으면 썸네일 크기로 지정
-        let markerImage = null;
-        if (deal.imageUrl) {
-          const imageSize = new kakao.maps.Size(40, 40);
-          markerImage = new kakao.maps.MarkerImage(deal.imageUrl, imageSize);
-        }
-
-        const marker = new kakao.maps.Marker({
-          map: this.map,
-          position,
-          title: deal.name,
-          image: markerImage || undefined,
-        });
-
-        // 마커 클릭 시 인포윈도우에 정보 표시
-        kakao.maps.event.addListener(marker, "click", () => {
-          const content = `
-            <div style="padding:10px; max-width:220px;">
-              <strong style="font-size:1.1rem;">${deal.name}</strong><br/>
-              가격: ${deal.price.toLocaleString()}원<br/>
-              연락처: ${deal.contact}<br/>
-              <div style="margin-top:8px;">
-                ${deal.imageUrl
-              ? `<img src="${deal.imageUrl}" alt="${deal.name}" style="width:100%; max-height:120px; object-fit:cover; border-radius:6px;" />`
-              : `<div style="color:#aaa; font-size:0.9rem; text-align:center;">이미지 없음</div>`
-            }
-              </div>
-            </div>
-          `;
-
-          this.infowindow.setContent(content);
-          this.infowindow.open(this.map, marker);
-        });
-
-        this.markers.push(marker);
-      });
-    },
-
-    toggleNotifications() {
-      this.$router.push("./notifications");
-    },
-
-    goToProfile() {
-      this.$router.push("./profile");
-    },
-
-    searchDeals() {
-      alert(`검색어: ${this.searchQuery}`);
-      // 필요 시 API 요청하여 검색 결과로 deals 갱신 후 addMarkers() 호출
-    },
-
-    goToAddItem() {
-      this.$router.push("Add");
-    },
+    }
   },
+  
+  // 라우터 복귀 시 다시 deals를 불러오기
+  async beforeRouteEnter(to, from, next) {
+    next(async vm => {
+      await vm.fetchDeals();
+    });
+  },
+  
+  // 다른 라우트로 이동했다가 돌아올 때
+  async activated() {
+    await this.fetchDeals();
+  }
 };
 </script>
 
-<style>
+<style scoped>
 /* 초기화 및 폰트 */
 * {
   box-sizing: border-box;
@@ -187,17 +218,13 @@ export default {
   font-family: 'Pretendard', sans-serif;
 }
 
-body {
-  background-color: #f4f4f4;
-  color: #333;
-}
-
 .main-container {
   display: flex;
   flex-direction: column;
-  /* min-height: 100vh; */
+  min-height: 100vh;
   width: 100%;
-  height: 400px;
+  background-color: #f4f4f4;
+  color: #333;
 }
 
 /* 상단 헤더 */
@@ -208,27 +235,39 @@ body {
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-.header h1 {
+.app-title {
   font-size: 1.2rem;
   font-weight: 700;
+  color: #ffa339;
 }
 
-.header-right button {
+.header-right {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.icon-button {
   background: none;
   border: none;
   color: #666;
   font-size: 0.9rem;
-  margin-left: 0.5rem;
   cursor: pointer;
   padding: 0.4rem 0.6rem;
   border-radius: 6px;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.header-right button:hover {
-  background-color: #efefef;
+.icon-button:hover {
+  background-color: #f0f0f0;
+  color: #ffa339;
 }
 
 /* 검색창 */
@@ -243,77 +282,147 @@ body {
 
 .search-container input {
   flex: 1;
-  padding: 0.7rem;
+  padding: 0.8rem;
   border: none;
   outline: none;
+  font-size: 0.9rem;
 }
 
-.search-container button {
+.search-container input::placeholder {
+  color: #999;
+}
+
+.search-button {
   background-color: #ffa339;
   color: #ffffff;
   border: none;
   padding: 0 1rem;
   cursor: pointer;
   transition: background-color 0.3s ease;
-}
-
-.search-container button:hover {
-  background-color: #ff951c;
-}
-
-/* 카카오맵 */
-.map-container {
-  margin: 1rem 1.5rem;
-  flex: 1;
-  height: 400px;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* 하단 버튼 */
-.find-button {
-  display: block;
-  width: calc(100% - 3rem);
-  margin: 1rem 1.5rem;
-  padding: 0.75rem;
-  background-color: #ffa339;
-  color: #ffffff;
-  text-align: center;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.find-button:hover {
-  background-color: #ff951c;
-}
-
-.add-item-button {
+  display: flex;
   align-items: center;
-  display: inline-block;
-  padding: 0.6rem 1.2rem;
-  background-color: #ffa339;
-  /* 브랜드 컬러 주황 */
+  justify-content: center;
+}
+
+.search-button:hover {
+  background-color: #ff951c;
+}
+
+/* 로딩 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: #666;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #ffa339;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 맵 래퍼 */
+.map-wrapper {
+  margin: 0 1.5rem;
+  flex: 1;
+  position: relative;
+}
+
+.deals-count {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(255, 163, 57, 0.9);
   color: white;
+  padding: 0.5rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 버튼 컨테이너 */
+.add-item-container, .refresh-container {
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.add-item-button, .refresh-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.5rem;
   border: none;
   border-radius: 8px;
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
-  box-shadow: 0 4px 8px rgba(255, 163, 57, 0.3);
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.add-item-button {
+  background-color: #ffa339;
+  color: white;
 }
 
 .add-item-button:hover {
   background-color: #ff951c;
-  box-shadow: 0 6px 12px rgba(255, 149, 28, 0.5);
+  box-shadow: 0 6px 12px rgba(255, 149, 28, 0.3);
 }
 
-.add-item-button:active {
-  background-color: #e57a00;
-  box-shadow: 0 2px 4px rgba(229, 122, 0, 0.7);
+.refresh-button {
+  background-color: #6c757d;
+  color: white;
+}
+
+.refresh-button:hover:not(:disabled) {
+  background-color: #5a6268;
+}
+
+.refresh-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.add-item-button:active, .refresh-button:active {
   transform: translateY(1px);
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .header {
+    padding: 0.8rem 1rem;
+  }
+  
+  .search-container {
+    margin: 0.8rem 1rem;
+  }
+  
+  .map-wrapper {
+    margin: 0 1rem;
+  }
+  
+  .add-item-container, .refresh-container {
+    padding: 0.8rem 1rem;
+  }
+  
+  .app-title {
+    font-size: 1.1rem;
+  }
 }
 </style>
