@@ -3,8 +3,7 @@
         <h2>땡처리 물품 추가하기</h2>
 
         <!-- 지도 추가 -->
-        <div id="map" class="map" v-show="mapLoaded"></div>
-
+        <div v-show="mapLoaded" ref="mapContainer" class="map"></div>
         <form @submit.prevent="submitItem">
             <label>
                 물품명
@@ -67,6 +66,7 @@ export default {
         };
     },
     mounted() {
+        console.log("🚀 mounted 실행됨");
         this.loadKakaoMapScript();
     },
     methods: {
@@ -75,7 +75,7 @@ export default {
                 this.initMap();
             } else {
                 const script = document.createElement('script');
-                script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_KAKAO_API_KEY&autoload=false`;
+                script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=5b7a047034c2cd477e680ad35bbb6862&autoload=false`;
                 script.onload = () => {
                     window.kakao.maps.load(() => {
                         this.initMap();
@@ -86,28 +86,35 @@ export default {
         },
 
         initMap() {
+            const savedLat = localStorage.getItem('user_latitude');
+            const savedLng = localStorage.getItem('user_longitude');
+
+            console.log("📦 savedLat:", savedLat, "📦 savedLng:", savedLng);
+
+
+            if (savedLat && savedLng) {
+                this.latitude = parseFloat(savedLat);
+                this.longitude = parseFloat(savedLng);
+                console.log("✅ 위도/경도 설정됨:", this.latitude, this.longitude);
+                this.renderMap();
+            } else {
+                console.warn("⚠️ 저장된 위치 없음, 새로 가져오는 중...");
+                this.getGeoAndRender();
+            }
+        },
+        getGeoAndRender() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     position => {
                         this.latitude = position.coords.latitude;
                         this.longitude = position.coords.longitude;
-
-                        const container = document.getElementById('map');
-                        const options = {
-                            center: new kakao.maps.LatLng(this.latitude, this.longitude),
-                            level: 3
-                        };
-                        this.map = new kakao.maps.Map(container, options);
-
-                        this.marker = new kakao.maps.Marker({
-                            position: new kakao.maps.LatLng(this.latitude, this.longitude),
-                            map: this.map
-                        });
-
-                        this.mapLoaded = true;
+                        this.renderMap();
                     },
                     error => {
                         console.error("위치 정보를 가져올 수 없습니다:", error);
+                        this.latitude = 37.5665; // 기본값
+                        this.longitude = 126.9780;
+                        this.renderMap();
                     }
                 );
             } else {
@@ -115,9 +122,40 @@ export default {
             }
         },
 
+        renderMap() {
+            const container = this.$refs.mapContainer; // ✅ ref로 가져오기
+            if (!container) {
+                console.error("지도 컨테이너를 찾을 수 없습니다.");
+                return;
+            }
+            const options = {
+                center: new kakao.maps.LatLng(this.latitude, this.longitude),
+                level: 3
+            };
+            this.map = new kakao.maps.Map(container, options);
+
+            this.marker = new kakao.maps.Marker({
+                position: new kakao.maps.LatLng(this.latitude, this.longitude),
+                map: this.map
+            });
+
+            this.mapLoaded = true;
+        },
         async submitItem() {
             if (!this.itemName || !this.description || !this.price || !this.inventory || !this.contact) {
                 alert("모든 필드를 채워주세요.");
+                return;
+            }
+            console.log("📍 submit 위치 정보:", this.latitude, this.longitude);
+
+            // latitude, longitude가 숫자인지 체크
+            const lat = parseFloat(this.latitude);
+            const lng = parseFloat(this.longitude);
+            console.log("🧪 float 변환된 값:", lat, lng);
+
+
+            if (isNaN(lat) || isNaN(lng)) {
+                alert("위치 정보가 올바르지 않습니다.");
                 return;
             }
 
@@ -128,14 +166,12 @@ export default {
                 formData.append('price', this.price);
                 formData.append('inventory', this.inventory);
                 formData.append('contact', this.contact);
+                formData.append('latitude', lat);
+                formData.append('longitude', lng);
                 formData.append('image', this.imageFile);
-                formData.append('latitude', this.latitude);
-                formData.append('longitude', this.longitude);
 
-                const response = await axios.post('http://localhost:3000/api/items', formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
+                await axios.post('http://localhost:3000/api/items', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
                 });
 
                 alert('물품이 성공적으로 등록되었습니다!');
@@ -146,7 +182,6 @@ export default {
                 alert('등록 중 오류가 발생했습니다.');
             }
         },
-
         resetForm() {
             this.itemName = "";
             this.description = "";
