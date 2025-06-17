@@ -21,8 +21,8 @@
       </button>
     </div>
 
-    <!-- 카카오맵 -->
-    <div ref="mapContainer" class="map-container"></div>
+    <!-- KakaoMap 컴포넌트 -->
+    <KakaoMap :stores="stores" @claim-deal="handleClaimDeal" />
 
     <!-- 하단 버튼 -->
     <footer class="footer">
@@ -34,164 +34,88 @@
 </template>
 
 <script>
+import KakaoMap from "@/components/KakaoMap.vue"; // 경로는 상황에 맞게 조정
+
 export default {
   name: "Main",
+  components: { KakaoMap },
   data() {
     return {
       searchQuery: "",
-      map: null,            // 카카오맵 객체
-      markers: [],         // 마커 객체
+      stores: [], // 서버에서 받은 매장 데이터 및 아이템 리스트
     };
   },
-  mounted() {
-    if (window.kakao && window.kakao.maps) {
-      this.$nextTick(this.initMap);
-    } else {
-      const script = document.createElement("script");
-      script.src = "https://dapi.kakao.com/v2/maps/sdk.js?appkey=5b7a047034c2cd477e680ad35bbb6862&autoload=false&libraries=services";
-      script.onload = () => {
-        kakao.maps.load(() => {
-          this.$nextTick(this.initMap);
-        });
-      };
-      document.head.appendChild(script);
-    }
-  },
   methods: {
-    initMap() {
-      const container = this.$refs.mapContainer;
-      const options = {
-        center: new kakao.maps.LatLng(37.5665, 126.978),
-        level: 3,
-      };
-      this.map = new kakao.maps.Map(container, options);
-
-      // 현재 위치 중심 잡기
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            const locPosition = new kakao.maps.LatLng(lat, lng);
-            this.map.setCenter(locPosition);
-          },
-          () => {
-            alert("위치 정보가 필요합니다!");
-          }
-        );
-      }
-    },
-
-    fetchNearbyDeals() {
-      const storeDataList = JSON.parse(localStorage.getItem("store_data")) || [];
-
-      // 기존 마커 제거
-      this.markers.forEach(m => m.setMap(null));
-      this.markers = [];
-
-      storeDataList.forEach(store => {
-        const position = new kakao.maps.LatLng(store.latitude, store.longitude);
-
-        const marker = new kakao.maps.Marker({
-          position,
-          map: this.map,
-        });
-
-        const itemList = store.items.map(item => `<li>${item.name} - ${item.price}원</li>`).join("");
-        const content = `
-          <div style="padding:5px; font-size:14px;">
-            <strong>${store.storeName}</strong>
-            <ul>${itemList}</ul>
-          </div>
-        `;
-
-        const infowindow = new kakao.maps.InfoWindow({ content });
-
-        kakao.maps.event.addListener(marker, 'click', () => {
-          infowindow.open(this.map, marker);
-        });
-
-        this.markers.push(marker); // 마커 저장
-      });
-
-      if (storeDataList.length === 0) {
-        alert("저장된 가게 정보가 없습니다.");
-      }
-    }
-  },
-  methods: {
-    initMap() {
-      const container = this.$refs.mapContainer;
-      const options = {
-        center: new kakao.maps.LatLng(37.5665, 126.978), // 기본 중심 좌표
-        level: 3,
-      };
-      this.map = new kakao.maps.Map(container, options);
-
-      // 기본 마커
-      this.marker = new kakao.maps.Marker({
-        position: this.map.getCenter(),
-      });
-      this.marker.setMap(this.map);
-
-      // 현재 위치 가져오기
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            const locPosition = new kakao.maps.LatLng(lat, lng);
-
-            this.map.setCenter(locPosition);
-            this.marker.setPosition(locPosition);
-          },
-          () => {
-            alert("위치 정보가 필요합니다!");
-          }
-        );
-      }
-    },
     toggleNotifications() {
-      this.$router.push('/Notifications');
+      this.$router.push("/Notifications");
     },
     goToProfile() {
-      this.$router.push('/Profile');
-    },
-    fetchNearbyDeals() {
-      alert("주변 땡처리 정보를 가져옵니다!");
-
+      this.$router.push("/Profile");
     },
     searchDeals() {
       alert(`검색어: ${this.searchQuery}`);
-    }, createMarkersFromStorage() {
-      const storedData = JSON.parse(localStorage.getItem('store_data')) || [];
+      // TODO: 검색 API 호출 후 this.stores 업데이트
+    },
+    async fetchNearbyDeals() {
+      try {
+        // 실제 API 호출
+        const response = await fetch("http://localhost:3000/api/deals");
+        const deals = await response.json();
 
-      storedData.forEach((store) => {
-        const markerPosition = new kakao.maps.LatLng(store.lat, store.lng);
-        const marker = new kakao.maps.Marker({
-          position: markerPosition,
-          map: this.map,
+        // deals 데이터 가공 (stores 형태로 변환 필요)
+        // 예시: 한 아이템당 한 store로 가정
+        const storesMap = new Map();
+
+        deals.forEach((deal) => {
+          // 좌표 기준으로 매장 그룹핑 (간단히 lat+lng 키로)
+          const key = `${deal.latitude}_${deal.longitude}`;
+          if (!storesMap.has(key)) {
+            storesMap.set(key, {
+              id: key,
+              storeName: "가게 정보 없음", // 실제 매장명 API가 있으면 변경 필요
+              latitude: deal.latitude,
+              longitude: deal.longitude,
+              items: [],
+            });
+          }
+          storesMap.get(key).items.push({
+            id: deal.id,
+            name: deal.name,
+            price: deal.price,
+          });
         });
 
-        const itemList = store.items.map(item => `<li>${item.name} - ${item.price}원</li>`).join('');
-        const content = `
-      <div style="padding:10px;">
-        <strong>${store.store_name}</strong>
-        <ul>${itemList}</ul>
-      </div>
-    `;
+        this.stores = Array.from(storesMap.values());
+      } catch (error) {
+        alert("주변 땡처리 정보를 불러오는데 실패했습니다.");
+        console.error(error);
+      }
+    },
+    async handleClaimDeal(dealId) {
+      try {
+        console.log("땡잡기 시도 dealId:", dealId);
 
-        const infoWindow = new kakao.maps.InfoWindow({ content });
-
-        kakao.maps.event.addListener(marker, 'click', () => {
-          infoWindow.open(this.map, marker);
+        const res = await fetch(`http://localhost:3000/api/deals/${dealId}/claim`, {
+          method: "POST",
         });
-      });
-    }
+
+        const data = await res.json(); // 올바른 변수명으로 받아오기
+        console.log("서버 응답:", res.status, data);
+
+        if (data.success) {
+          alert(data.message);
+          await this.fetchNearbyDeals(); // 재고 변동 반영
+        } else {
+          alert(data.message || "땡잡기 실패");
+        }
+      } catch (error) {
+        alert("땡잡기 중 오류가 발생했습니다.");
+        console.error(error);
+      }
+    },
   },
 };
 </script>
-
 <style>
 /* 초기화 및 폰트 */
 * {
