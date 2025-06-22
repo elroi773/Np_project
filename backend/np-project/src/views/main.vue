@@ -61,9 +61,6 @@ export default {
         // 실제 API 호출
         const response = await fetch("http://localhost:3000/api/deals");
         const deals = await response.json();
-
-        // deals 데이터 가공 (stores 형태로 변환 필요)
-        // 예시: 한 아이템당 한 store로 가정
         const storesMap = new Map();
 
         deals.forEach((deal) => {
