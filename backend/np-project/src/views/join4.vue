@@ -134,7 +134,7 @@ export default {
             this.isLoading = true;
 
             try {
-                // 변경: /api/signup 대신 /api/users/add 호출
+                // /api/users/add 호출
                 const response = await axios.post('http://localhost:3000/api/users/add', {
                     username: this.username.trim(),
                     password: this.password,
