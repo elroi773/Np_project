@@ -55,7 +55,6 @@ export default {
         decrease() {
             if (this.count > 1) this.count--;
         },
-        // Vue 컴포넌트의 수정된 goNext 메서드
         async goNext() {
             // 사용자명 검증
             if (!this.username || this.username.trim() === '') {
